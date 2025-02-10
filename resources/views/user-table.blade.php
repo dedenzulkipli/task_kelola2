@@ -63,18 +63,18 @@
                             <td>{{ $user->role_name }}</td>
                             <td>
                                 @if(!$user->is_seeder)
-                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#editModal{{ $user->id }}">
+                                <button class="btn btn-primary btn-sm editUserBtn" data-id="{{ $user->id }}"
+                                    data-username="{{ $user->username }}" data-email="{{ $user->email }}"
+                                    data-no_hp="{{ $user->no_hp }}" data-address="{{ $user->address }}"
+                                    data-jurusan="{{ $user->jurusan }}" data-status="{{ $user->status }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form method="POST" action="/admin/users/{{ $user->id }}"
-                                    onsubmit="return confirmDelete('{{ $user->username }}')" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="confirmDelete('{{ $user->id }} + {{ $user->username }}')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+
 
 
                                 @else
@@ -82,152 +82,80 @@
                                 @endif
                             </td>
                         </tr>
-
-                        <!-- <div class="modal fade" id="confirmDeleteModal" tabindex="-1"
-                            aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-danger text-white">
-                                        <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Apakah Anda yakin ingin menghapus <strong id="modalUserName"></strong>?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Batal</button>
-                                        <form id="deleteForm" method="POST" action="/admin/users/{{ $user->id }}"
-                                            style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Hapus</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
-                        <!-- Modal Edit -->
-                        <div class="modal fade" id="editModal{{ $user->id }}" tabindex="-1"
-                            aria-labelledby="editModalLabel{{ $user->id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-primary text-white">
-                                        <h5 class="modal-title" id="editModalLabel{{ $user->id }}">
-                                            <i class="fas fa-edit"></i> Edit User
-                                        </h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <form id="editUser Form{{ $user->id }}" action="/admin/users/update/{{ $user->id }}"
-                                        method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="id" value="{{ $user->id }}">
-                                        <div class="modal-body">
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label for="username{{ $user->id }}"
-                                                        class="form-label">UserName</label>
-                                                    <input type="text"
-                                                        class="form-control @error('username') is-invalid @enderror"
-                                                        id="username{{ $user->id }}" name="username"
-                                                        value="{{ old('username', $user->username) }}" required>
-                                                    @error('username')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="email{{ $user->id }}" class="form-label">Email</label>
-                                                    <input type="email"
-                                                        class="form-control @error('email') is-invalid @enderror"
-                                                        id="email{{ $user->id }}" name="email"
-                                                        value="{{ old('email', $user->email) }}" required>
-                                                    @error('email')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="no_hp{{ $user->id }}" class="form-label">No HP</label>
-                                                    <input type="tel"
-                                                        class="form-control @error('no_hp') is-invalid @enderror"
-                                                        id="no_hp{{ $user->id }}" name="no_hp"
-                                                        value="{{ old('no_hp', $user->no_hp) }}" required
-                                                        pattern="[0-9]+" title="Nomor telepon hanya boleh angka">
-                                                    @error('no_hp')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="address{{ $user->id }}"
-                                                        class="form-label">Address</label>
-                                                    <textarea
-                                                        class="form-control @error('address') is-invalid @enderror"
-                                                        id="address{{ $user->id }}" name="address"
-                                                        required>{{ old('address', $user->address) }}</textarea>
-                                                    @error('address')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="jurusan{{ $user->id }}"
-                                                        class="form-label">Jurusan</label>
-                                                    <select class="form-control @error('jurusan') is-invalid @enderror"
-                                                        id="jurusan{{ $user->id }}" name="jurusan" required>
-                                                        <option value="Teknik Informatika"
-                                                            {{ old('jurusan', $user->jurusan) == 'Teknik Informatika' ? 'selected' : '' }}>
-                                                            Teknik Informatika</option>
-                                                        <option value="Sistem Informasi"
-                                                            {{ old('jurusan', $user->jurusan) == 'Sistem Informasi' ? 'selected' : '' }}>
-                                                            Sistem Informasi</option>
-                                                        <option value="Manajemen"
-                                                            {{ old('jurusan', $user->jurusan) == 'Manajemen' ? 'selected' : '' }}>
-                                                            Manajemen</option>
-                                                        <option value="Akuntansi"
-                                                            {{ old('jurusan', $user->jurusan) == 'Akuntansi' ? 'selected' : '' }}>
-                                                            Akuntansi</option>
-                                                    </select>
-                                                    @error('jurusan')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="status{{ $user->id }}" class="form-label">Status</label>
-                                                    <select class="form-control @error('status') is-invalid @enderror"
-                                                        id="status{{ $user->id }}" name="status" required>
-                                                        <option value="1"
-                                                            {{ old('status', $user->status) == 1 ? 'selected' : '' }}>
-                                                            Active</option>
-                                                        <option value="0"
-                                                            {{ old('status', $user->status) == 0 ? 'selected' : '' }}>
-                                                            Inactive</option>
-                                                    </select>
-                                                    @error('status')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                <i class="fas fa-times"></i> Close
-                                            </button>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-save"></i> Save changes
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                         @endforeach
                     </tbody>
+                    <!-- Modal Edit Global -->
+                    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title"><i class="fas fa-edit"></i> Edit User</h5>
+                                    <button type="button" class="btn-close btn-close-white"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="editUserForm">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="id" id="userId">
+                                    <div class="modal-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Username</label>
+                                                <input type="text" class="form-control" id="username" name="username">
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="email" name="email">
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">No HP</label>
+                                                <input type="tel" class="form-control" id="no_hp" name="no_hp">
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Address</label>
+                                                <textarea class="form-control" id="address" name="address"></textarea>
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Jurusan</label>
+                                                <select class="form-control" id="jurusan" name="jurusan">
+                                                    <option value="Teknik Informatika">Teknik Informatika</option>
+                                                    <option value="Sistem Informasi">Sistem Informasi</option>
+                                                    <option value="Manajemen">Manajemen</option>
+                                                    <option value="Akuntansi">Akuntansi</option>
+                                                </select>
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-control" id="status" name="status">
+                                                    <option value="1">Active</option>
+                                                    <option value="0">Inactive</option>
+                                                </select>
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times"></i> Close
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Save changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </table>
-                <div class="modal fade @if ($errors->any() && !old('id')) show @endif" id="createModal" tabindex="-1"
-                    aria-labelledby="createModalLabel" @if ($errors->any() && !old('id')) style="display: block;"
-                    aria-modal="true"
-                    @else aria-hidden="true" @endif>
+                <!-- Modal -->
+                <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel"
+                    aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <form action="{{ route('users.store') }}" method="POST" id="createUserForm">
@@ -241,48 +169,34 @@
                                     <!-- Username -->
                                     <div class="form-group mb-3">
                                         <label for="username">Username</label>
-                                        <input type="text" class="form-control @error('username') is-invalid @enderror"
-                                            id="username" name="username" value="{{ old('username') }}" required>
-                                        @error('username')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <input type="text" class="form-control" id="username" name="username">
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
                                     <!-- Email -->
                                     <div class="form-group mb-3">
                                         <label for="email">Email</label>
-                                        <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                            id="email" name="email" value="{{ old('email') }}" required>
-                                        @error('email')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <input type="email" class="form-control" id="email" name="email">
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
                                     <!-- No HP -->
                                     <div class="form-group mb-3">
                                         <label for="no_hp">No HP</label>
-                                        <input type="text" class="form-control @error('no_hp') is-invalid @enderror"
-                                            id="no_hp" name="no_hp" value="{{ old('no_hp') }}" required>
-                                        @error('no_hp')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <input type="text" class="form-control" id="no_hp" name="no_hp">
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
                                     <!-- Password -->
                                     <div class="form-group mb-3 position-relative">
                                         <label for="password3">Password</label>
                                         <div class="input-group">
-                                            <input type="password"
-                                                class="form-control @error('password') is-invalid @enderror"
-                                                id="password3" name="password" required>
-                                            <button type="button" id="togglePassword3"
-                                                class="btn btn-outline-secondary toggle-password">
+                                            <input type="password" class="form-control" id="password3" name="password">
+                                            <button type="button" class="btn btn-outline-secondary toggle-password">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
-                                        @error('password')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
                                     <!-- Confirm Password -->
@@ -290,61 +204,37 @@
                                         <label for="password_confirmation2">Confirm Password</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" id="password_confirmation2"
-                                                name="password_confirmation" required>
-                                            <button type="button" id="togglePassword4"
-                                                class="btn btn-outline-secondary toggle-password">
+                                                name="password_confirmation">
+                                            <button type="button" class="btn btn-outline-secondary toggle-password">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
-                                    <!-- Jurusan (Select Option) -->
-                                    <div class="form-group mb-3">
-                                        <label for="jurusan">Jurusan</label>
-                                        <select class="form-control @error('jurusan') is-invalid @enderror" id="jurusan"
-                                            name="jurusan" required>
-                                            <option value="Teknik Informatika"
-                                                {{ old('jurusan') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik
-                                                Informatika</option>
-                                            <option value="Sistem Informasi"
-                                                {{ old('jurusan') == 'Sistem Informasi' ? 'selected' : '' }}>Sistem
-                                                Informasi</option>
-                                            <option value="Manajemen"
-                                                {{ old('jurusan') == 'Manajemen' ? 'selected' : '' }}>Manajemen</option>
-                                            <option value="Akuntansi"
-                                                {{ old('jurusan') == 'Akuntansi' ? 'selected' : '' }}>Akuntansi</option>
-                                        </select>
-                                        @error('jurusan')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Address -->
+                                    <select class="form-control" id="jurusan" name="jurusan">
+                                        <option value="" selected disabled>-- Pilih Jurusan --</option>
+                                        <option value="Teknik Informatika">Teknik Informatika</option>
+                                        <option value="Sistem Informasi">Sistem Informasi</option>
+                                        <option value="Manajemen">Manajemen</option>
+                                        <option value="Akuntansi">Akuntansi</option>
+                                        <span class="invalid-feedback"></span>
+                                    </select>
                                     <div class="form-group mb-3">
                                         <label for="address">Address</label>
-                                        <textarea class="form-control @error('address') is-invalid @enderror"
-                                            id="address" name="address" required>{{ old('address') }}</textarea>
-                                        @error('address')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <textarea class="form-control" id="address" name="address"></textarea>
+                                        <span class="invalid-feedback"></span>
                                     </div>
 
-                                    <!-- Role Name -->
                                     <div class="form-group mb-3">
                                         <label for="role_name">Role</label>
-                                        <select class="form-control @error('role_name') is-invalid @enderror"
-                                            id="role_name" name="role_name" required>
-                                            <option value="User" {{ old('role_name') == 'User' ? 'selected' : '' }}>User
-                                            </option>
-                                            <option value="Admin" {{ old('role_name') == 'Admin' ? 'selected' : '' }}>
-                                                Admin</option>
+                                        <select class="form-control" id="role_name" name="role_name">
+                                            <option value="User">User</option>
+                                            <option value="Admin">Admin</option>
                                         </select>
-                                        @error('role_name')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
+                                        <span class="invalid-feedback"></span>
                                     </div>
                                 </div>
-
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Cancel</button>
@@ -355,9 +245,6 @@
                     </div>
                 </div>
 
-
-
-                <!-- Pagination -->
                 <div class="d-flex justify-content-center mt-4">
                     <ul class="pagination pagination-sm">
                         {{ $users->links('pagination::bootstrap-4') }}
@@ -386,169 +273,230 @@ document.querySelectorAll('input[name="no_hp"]').forEach(function(input) {
     });
 });
 
-const toggle3 = document.getElementById('togglePassword3');
-toggle3.addEventListener('click', function() {
-    const passwordField = document.getElementById('password3');
-    const icon = this.querySelector('svg');
+$(document).ready(function() {
+    $('#createUserForm').on('submit', function(e) {
+        e.preventDefault(); // Mencegah form submit default
 
-    // Toggle visibility
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        passwordField.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
+        let form = $(this);
+        let formData = form.serialize(); // Ambil data form
+
+        $.ajax({
+            url: form.attr("action"), // Ambil URL dari atribut action form
+            type: "POST",
+            data: formData,
+            dataType: "json",
+            beforeSend: function() {
+                $('.invalid-feedback').text("").hide(); // Reset pesan error
+                $('.is-invalid').removeClass('is-invalid');
+                $('#createUserForm button[type="submit"]').prop('disabled',
+                    true); // Disable tombol
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: response.message,
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+
+                    $('#createModal').modal('hide'); // Tutup modal
+                    form.trigger("reset"); // Reset form
+                    location.reload(); // Refresh halaman
+                }
+            },
+            error: function(xhr) {
+                console.log("Error Response:", xhr.responseJSON); // Debug error di console
+
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+
+                    $('.invalid-feedback').text("").hide(); // Reset pesan error
+                    $('.is-invalid').removeClass('is-invalid'); // Hapus tanda error lama
+
+                    $.each(errors, function(key, value) {
+                        let input = $('[name="' + key + '"]');
+                        input.addClass('is-invalid'); // Tambahkan class error
+                        input.next('.invalid-feedback').text(value[0])
+                    .show(); // Tampilkan error
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: xhr.responseJSON.message || "Terjadi kesalahan.",
+                    });
+                }
+            },
+
+            complete: function() {
+                $('#createUserForm button[type="submit"]').prop('disabled',
+                    false); // Aktifkan kembali tombol submit
+            }
+        });
+    });
+
+    // Toggle password visibility
+    $(".toggle-password").click(function() {
+        let input = $(this).prev("input");
+        let icon = $(this).find("i");
+
+        if (input.attr("type") === "password") {
+            input.attr("type", "text");
+            icon.removeClass("fa-eye").addClass("fa-eye-slash");
+        } else {
+            input.attr("type", "password");
+            icon.removeClass("fa-eye-slash").addClass("fa-eye");
+        }
+    });
+
+    // Reset form saat modal ditutup
+    $('#createModal').on('hidden.bs.modal', function() {
+        $('#createUserForm').trigger("reset");
+        $('#jurusan').val('');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').text("").hide();
+    });
 });
-$('#createUserForm').on('submit', function(e) {
-    e.preventDefault();
 
-    let formData = {
-        _token: $('input[name=_token]').val(),
-        username: $('#username').val(),
-        email: $('#email').val(),
-        no_hp: $('#no_hp').val(),
-        address: $('#address').val(),
-        jurusan: $('#jurusan').val(),
-        role_name: $('#role_name').val(),
-        password: $('#password3').val(),
-        password_confirmation: $('#password_confirmation2').val(),
-    };
 
-    $.ajax({
-        url: "/admin/users/store",
-        type: "POST",
-        data: formData,
-        success: function(response) {
-            if (response.success) {
+
+//editt modal
+$(document).ready(function() {
+    $('.editUserBtn').on('click', function() {
+        let userId = $(this).data('id');
+        let username = $(this).data('username');
+        let email = $(this).data('email');
+        let no_hp = $(this).data('no_hp');
+        let address = $(this).data('address');
+        let jurusan = $(this).data('jurusan');
+        let status = $(this).data('status');
+
+        $('#userId').val(userId);
+        $('#username').val(username);
+        $('#email').val(email);
+        $('#no_hp').val(no_hp);
+        $('#address').val(address);
+        $('#jurusan').val(jurusan);
+        $('#status').val(status);
+
+        $('#editUserForm').attr('action', '/admin/users/update/' + userId);
+
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+
+        $('#editModal').modal('show');
+    });
+
+    $('#editUserForm').on('submit', function(e) {
+        e.preventDefault();
+
+        let form = $(this);
+        let actionUrl = form.attr('action');
+        let formData = form.serialize() + '&_method=PUT';
+
+        $.ajax({
+            url: actionUrl,
+            type: 'PUT',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                    'content')
+            },
+            success: function(response) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
-                    text: response.message,
+                    text: 'User updated successfully.',
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000
                 });
-                $('#createModal').modal('hide');
-                location.reload(); // Refresh halaman
+
+                $('#editModal').modal('hide');
+                setTimeout(() => {
+                    window.location
+                        .reload();
+                }, 500);
+            },
+            error: function(xhr) {
+                console.log("Error Response:", xhr.responseJSON);
+
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+
+                    $('.invalid-feedback').remove();
+                    $('.is-invalid').removeClass('is-invalid');
+
+                    $.each(errors, function(key, value) {
+                        let input = $('[name="' + key +
+                            '"]');
+                        if (input.length > 0) {
+                            input.addClass('is-invalid');
+                            input.after('<div class="invalid-feedback">' + value[
+                                0] + '</div>');
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON.message ||
+                            'An unexpected error occurred.',
+                    });
+                }
             }
-        },
-        error: function(xhr) {
-            console.log("Error Response:", xhr.responseJSON);
-
-            if (xhr.status === 422) {
-                let errors = xhr.responseJSON.errors;
-
-                // Hapus error sebelumnya
-                $('.invalid-feedback').remove();
-                $('.is-invalid').removeClass('is-invalid');
-
-                // Tampilkan error baru
-                $.each(errors, function(key, value) {
-                    let input = $('[name=' + key + ']');
-                    input.addClass('is-invalid');
-                    input.after('<div class="invalid-feedback">' + value[0] + '</div>');
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: xhr.responseJSON.message || 'An unexpected error occurred.',
-                });
-            }
-        },
+        });
     });
 });
 
-
-
-
-$(document).ready(function () {
-    let editModalId = null;
-    $(document).on('click', '[data-bs-target^="#editModal"]', function() {
-    let targetModal = $($(this).data('bs-target'));
-    editModalId = targetModal.attr('id');
-    console.log('Opening Modal:', targetModal.attr('id'));
-
-        // Handle form submission for edit user
-        $(document).on('submit', `#${editModalId}`, function (e) {
-            e.preventDefault(); // Prevent default form submission
-            
-            let form = $(this);
-            let userId = form.find('input[name="id"]').val(); // Get user ID from hidden input
-
-            // Debugging
-            console.log('Submitting Form:', form);
-            console.log('User  ID:', userId);
-
-            let actionUrl = '/admin/users/update/' + userId; // Set the action URL
-
+//delete
+function confirmDelete(userId, username) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: `User "${username}" akan dihapus!`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
             $.ajax({
-                url: actionUrl,
-                type: 'PUT',
-                data: form, // Serialize form data
-                success: function (response) {
-                    console.log('Response:', response); // Log the response
-
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        }).then(() => {
-                            // Redirect to the user datatable after the success message
-                            window.location.href = '/admin/user-table'; // Redirect to the user datatable
-                        });
-                    }
+                url: '/admin/users/' + userId,
+                type: 'POST',
+                data: {
+                    _method: 'DELETE',
+                    _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                error: function (xhr) {
-                    let response = xhr.responseJSON;
-
-                    // Clear previous error messages
-                    form.find('.invalid-feedback').remove();
-                    form.find('input, select, textarea').removeClass('is-invalid');
-
-                    if (response.errors) {
-                        // Display validation errors
-                        for (const [key, value] of Object.entries(response.errors)) {
-                            let errorElement = form.find(`#${key}Error`);
-                            if (errorElement.length) {
-                                errorElement.text(value.join(' '));
-                            } else {
-                                form.find(`#${key}`).addClass('is-invalid');
-                                form.find(`#${key}`).after(`<div class="invalid-feedback" id="${key}Error">${value.join(' ')}</div>`);
-                            }
-                        }
-                        return; // Keep the modal open if there are errors
-                    } else {
-                        // Display general error message
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message || 'Something went wrong.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                    }
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'User berhasil dihapus.',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    let message = xhr.responseJSON?.message || 'Terjadi kesalahan!';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: message
+                    });
                 }
             });
-        });
-});
-
-    // Reset validation messages when the modal is closed
-    $(document).on('hidden.bs.modal', function () {
-        $(this).find('.invalid-feedback').remove();
-        $(this).find('input, select, textarea').removeClass('is-invalid');
+        }
     });
-});
+}
 </script>
 @endsection

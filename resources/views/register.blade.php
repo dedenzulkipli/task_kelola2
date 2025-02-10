@@ -8,6 +8,8 @@
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
     body {
         background: linear-gradient(to right, #007bff, #00c6ff);
@@ -25,52 +27,20 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         padding: 30px;
         width: 600px;
-        height: auto;
         animation: slideIn 1s ease-out;
     }
 
     .auth-container h3 {
         text-align: center;
-        margin-bottom: 20px;
         color: #007bff;
         font-weight: 600;
         font-size: 18px;
     }
 
-    .form-floating input,
-    .form-floating label {
-        font-size: 14px;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-        transition: background-color 0.3s, border-color 0.3s;
-    }
-
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #004085;
-    }
-
-    .form-check-label {
-        font-size: 14px;
-    }
-
-    .auth-container a {
-        color: #007bff;
-        font-size: 14px;
-        text-decoration: none;
-        transition: color 0.3s;
-    }
-
-    .auth-container a:hover {
-        color: #0056b3;
-    }
-
-    .auth-container .alert {
-        font-size: 14px;
-        margin-bottom: 10px;
+    .error-message {
+        font-size: 12px;
+        color: #dc3545;
+        margin-bottom: 5px;
     }
 
     @keyframes slideIn {
@@ -85,27 +55,21 @@
         }
     }
 
-    .eye-icon {
+    .toggle-password {
         position: absolute;
+        right: 15px;
         top: 50%;
-        right: 10px;
         transform: translateY(-50%);
         cursor: pointer;
+        color: #6c757d;
+    }
+
+    .toggle-password:hover {
         color: #007bff;
     }
 
-    .password-container {
+    .form-floating {
         position: relative;
-    }
-
-    .password-container input[type="password"] {
-        padding-right: 30px;
-    }
-
-    .error-message {
-        font-size: 12px;
-        color: #dc3545;
-        margin-bottom: 5px;
     }
     </style>
 </head>
@@ -114,127 +78,190 @@
     <div class="auth-container">
         <h3><i class="fas fa-user-plus"></i> Register</h3>
 
-        <!-- @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif -->
-
-        <form method="POST" action="{{ route('register.submit') }}">
+        <form id="registerForm">
             @csrf
 
-            <!-- Username -->
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="username" name="username" placeholder="Username"
-                    value="{{ old('username') }}" required>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username">
                 <label for="username"><i class="fas fa-user"></i> Username</label>
-                @if ($errors->has('username'))
-                <div class="error-message">{{ $errors->first('username') }}</div>
-                @endif
+                <div class="error-message" id="error-username"></div>
             </div>
 
-            <!-- Email -->
             <div class="form-floating mb-3">
-                <input type="email" class="form-control" id="email" name="email" placeholder="Email"
-                    value="{{ old('email') }}" required>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email">
                 <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                @if ($errors->has('email'))
-                <div class="error-message">{{ $errors->first('email') }}</div>
-                @endif
+                <div class="error-message" id="error-email"></div>
             </div>
 
-            <!-- Phone Number -->
             <div class="form-floating mb-3">
-                <input type="tel" class="form-control" id="no_hp" name="no_hp" placeholder="Phone Number"
-                    value="{{ old('no_hp') }}" required inputmode="numeric" pattern="[0-9]+"
-                    title="Nomor telepon hanya boleh mengandung angka">
+                <input type="tel" class="form-control" id="no_hp" name="no_hp" placeholder="Phone Number">
                 <label for="no_hp"><i class="fas fa-phone"></i> Phone Number</label>
-                @if ($errors->has('no_hp'))
-                <div class="error-message">{{ $errors->first('no_hp') }}</div>
-                @endif
+                <div class="error-message" id="error-no_hp"></div>
             </div>
 
-            <!-- Address -->
             <div class="mb-3">
-                @if ($errors->has('address'))
-                <div class="error-message">{{ $errors->first('address') }}</div>
-                @endif
-                <label for="address" class="form-label"><i class="fas fa-map-marker-alt"></i> Address</label>
+                <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
                 <textarea class="form-control" id="address" name="address" rows="3"
-                    placeholder="Address (Optional)">{{ old('address') }}</textarea>
+                    placeholder="Enter your address"></textarea>
+                <div class="error-message" id="error-address"></div>
             </div>
 
-            <!-- Jurusan -->
             <div class="mb-3">
-                @if ($errors->has('jurusan'))
-                <div class="error-message">{{ $errors->first('jurusan') }}</div>
-                @endif
-                <label for="jurusan" class="form-label"><i class="fas fa-graduation-cap"></i> Jurusan</label>
-                <select class="form-control" id="jurusan" name="jurusan" required>
-                    <option value="Teknik Informatika" {{ old('jurusan') == 'Teknik Informatika' ? 'selected' : '' }}>
-                        Teknik Informatika</option>
-                    <option value="Sistem Informasi" {{ old('jurusan') == 'Sistem Informasi' ? 'selected' : '' }}>Sistem
-                        Informasi</option>
-                    <option value="Manajemen" {{ old('jurusan') == 'Manajemen' ? 'selected' : '' }}>Manajemen</option>
-                    <option value="Akuntansi" {{ old('jurusan') == 'Akuntansi' ? 'selected' : '' }}>Akuntansi</option>
+                <label for="jurusan"><i class="fas fa-graduation-cap"></i> Jurusan</label>
+                <select class="form-control" id="jurusan" name="jurusan">
+                    <!-- <option value="" selected disabled>-- Pilih Jurusan --</option> -->
+                    <option value="Teknik Informatika">Teknik Informatika</option>
+                    <option value="Sistem Informasi">Sistem Informasi</option>
+                    <option value="Manajemen">Manajemen</option>
+                    <option value="Akuntansi">Akuntansi</option>
                 </select>
+                <div class="error-message" id="error-jurusan"></div>
             </div>
 
-            <!-- Password -->
-            <div class="form-floating mb-3 password-container">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password"
-                    required>
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                 <label for="password"><i class="fas fa-lock"></i> Password</label>
-                <span class="eye-icon" onclick="togglePassword('password')"><i class="fas fa-eye"></i></span>
-                @if ($errors->has('password'))
-                <div class="error-message">{{ $errors->first('password') }}</div>
-                @endif
+                <div class="error-message" id="error-password"></div>
+                <span class="toggle-password" toggle="#password"><i class="fas fa-eye"></i></span>
             </div>
 
-            <!-- Confirm Password -->
-            <div class="form-floating mb-3 password-container">
+            <div class="form-floating mb-3">
                 <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
-                    placeholder="Confirm Password" required>
+                    placeholder="Confirm Password">
                 <label for="password_confirmation"><i class="fas fa-lock"></i> Confirm Password</label>
-                <span class="eye-icon" onclick="togglePassword('password_confirmation')"><i
-                        class="fas fa-eye"></i></span>
-                @if ($errors->has('password_confirmation'))
-                <div class="error-message">{{ $errors->first('password_confirmation') }}</div>
-                @endif
+                <div class="error-message" id="error-password_confirmation"></div>
+                <span class="toggle-password" toggle="#password_confirmation"><i class="fas fa-eye"></i></span>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Register</button>
+
+            <button type="submit" id="registerButton" class="btn btn-primary w-100">Register</button>
 
             <div class="text-center mt-3">
                 <a href="{{ route('login') }}">Already have an account? Login</a>
             </div>
         </form>
     </div>
-
+    <!--  -->
     <script>
     document.getElementById('no_hp').addEventListener('input', function(e) {
         // Hanya izinkan angka
         this.value = this.value.replace(/[^0-9]/g, '');
     });
+    $(document).ready(function() {
+        $(".toggle-password").click(function() {
+            let input = $($(this).attr("toggle"));
+            let icon = $(this).find("i");
 
-    function togglePassword(id) {
-        const input = document.getElementById(id);
-        const icon = input.nextElementSibling.querySelector('i');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                icon.removeClass("fa-eye").addClass("fa-eye-slash");
+            } else {
+                input.attr("type", "password");
+                icon.removeClass("fa-eye-slash").addClass("fa-eye");
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        $("input, select, textarea").on("input change", function() {
+            validateField($(this));
+        });
+
+        $("#registerForm").submit(function(e) {
+            e.preventDefault();
+            $(".error-message").text("");
+
+            let isValid = true;
+            $("input, select, textarea").each(function() {
+                if (!validateField($(this))) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) return;
+
+            let formData = $(this).serialize();
+            $.ajax({
+                url: "{{ route('register.submit') }}",
+                type: "POST",
+                data: formData,
+                dataType: "json",
+                beforeSend: function() {
+                    $("#registerButton").prop("disabled", true).text("Processing...");
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            toast: true,
+                            position: "top-end",
+                            icon: "success",
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+
+                        setTimeout(() => {
+                            window.location.href = "{{ route('login') }}";
+                        }, 2000);
+                    }
+                },
+                error: function(xhr) {
+                    $("#registerButton").prop("disabled", false).text("Register");
+
+                    let errors = xhr.responseJSON.errors;
+                    if (errors) {
+                        $.each(errors, function(key, messages) {
+                            $("#error-" + key).text(messages[0]);
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Terjadi Kesalahan",
+                            text: "Mohon coba lagi nanti."
+                        });
+                    }
+                }
+            });
+        });
+
+        function validateField(input) {
+            let value = input.val().trim();
+            let fieldName = input.attr("name");
+            let errorElement = $("#error-" + fieldName);
+            let isValid = true;
+
+            if (value === "") {
+                errorElement.text("Field ini wajib diisi!");
+                isValid = false;
+            } else {
+                errorElement.text("");
+            }
+
+            if (fieldName === "email" && value !== "" && !validateEmail(value)) {
+                errorElement.text("Format email tidak valid!");
+                isValid = false;
+            }
+
+            if (fieldName === "no_hp" && value !== "" && !/^\d+$/.test(value)) {
+                errorElement.text("Nomor HP hanya boleh berisi angka!");
+                isValid = false;
+            }
+
+            if (fieldName === "password" && value.length < 8) {
+                errorElement.text("Password minimal 8 karakter!");
+                isValid = false;
+            }
+            
+
+            return isValid;
         }
-    }
-    </script>
 
-    @include('sweetalert::alert')
+        function validateEmail(email) {
+            let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+    });
+</script>
 </body>
-
 </html>

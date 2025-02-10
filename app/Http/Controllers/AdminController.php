@@ -9,39 +9,36 @@ use Exception;
 use Realrashid\Sweetalert\Alert;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
     public function index()
-{
-    // Mengambil semua pengguna yang bukan admin
-    $users = User::where('role_name', '!=', 'Admin')->get();
-    $totalUsers = $users->count();
-
-    // Mengambil total admin
-    $totalAdmins = User::where('role_name', 'Admin')->count();
-
-    return view('dashboard', compact('totalUsers', 'totalAdmins', 'users'));
-}
+    {
+        $users = User::where('role_name', '!=', 'Admin')->get();
+        $totalUsers = $users->count();
+    
+        $totalAdmins = User::where('role_name', 'Admin')->count();
+    
+        return view('dashboard', compact('totalUsers', 'totalAdmins', 'users'));
+    }
 
     public function showUserDataTable(Request $request)
-{
-    // Pastikan hanya Admin yang bisa mengakses halaman ini
-    if (auth()->user()->role_name !== 'Admin') {
-        return redirect()->route('dashboard');  // Redirect ke dashboard jika bukan admin
+    {
+        if (auth()->user()->role_name !== 'Admin') {
+            return redirect()->route('dashboard');  
+        }
+    
+        $query = User::query();  
+    
+        if ($request->has('search') && !empty($request->search)) {
+            $query->where('username', 'LIKE', '%' . $request->search . '%');
+        }
+    
+        $users = $query->paginate(10)->appends(['search' => $request->search]); 
+    
+        return view('user-table', compact('users'));
     }
-
-    // Filter berdasarkan pencarian (jika ada)
-    $query = User::query();  // Menampilkan semua pengguna
-
-    if ($request->has('search') && !empty($request->search)) {
-        $query->where('username', 'LIKE', '%' . $request->search . '%');
-    }
-
-    $users = $query->paginate(10)->appends(['search' => $request->search]); // Menambahkan parameter search ke pagination
-
-    return view('user-table', compact('users'));
-}
 
 
     public function indek()
@@ -50,80 +47,57 @@ class AdminController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    // Validate incoming data
-    $validatedData = $request->validate([
-        'username' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:users,email,' . $id,
-        'no_hp' => 'required|numeric|digits_between:10,15|unique:users,no_hp,' . $id,
-        'address' => 'nullable|string|max:255',
-        'jurusan' => 'required|string|max:100',
-        'status' => 'required|in:1,0',
-    ]);
-
-    try {
-        // Find the user by ID
-        $user = User::findOrFail($id);
-
-        // Update user fields
-        $user->username = $validatedData['username'];
-        $user->email = $validatedData['email'];
-        $user->no_hp = $validatedData['no_hp'];
-        $user->address = $validatedData['address'] ?: $user->address; // Keep old address if not provided
-        $user->jurusan = $validatedData['jurusan'];
-        $user->status = $validatedData['status'];
-        $user->save();
-
-        // Redirect back with success message
-        alert()->success('Update Successful', 'User  updated successfully.'); // Corrected alert message
-        return redirect()->route('user-table')->with('success', 'User  updated successfully.');
-
-    } catch (\Exception $e) {
-        Log::error('Error updating user: ' . $e->getMessage());
-        return redirect()->route('user-table')->with('error', 'An error occurred while updating the user.');
-    }
-}
-public function showLoginForm()
     {
-        return view('login'); // Mengarah ke file blade login
+        $validatedData = $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
+            'no_hp' => 'required|numeric|digits_between:10,15|unique:users,no_hp,' . $id,
+            'address' => 'nullable|string|max:255',
+            'jurusan' => 'required|string',
+            'status' => 'required|in:1,0',
+        ]);
+    
+        try {
+            $user = User::findOrFail($id);
+            $user->update($validatedData);
+    
+            return response()->json(['success' => 'User updated successfully'], 200);
+        } catch (\Exception $e) {
+            Log::error('Error updating user: ' . $e->getMessage());
+            return response()->json(['error' => 'Terjadi kesalahan saat memperbarui user.'], 500);
+        }
+    }
+    
+    public function showLoginForm()
+    {
+        return view('login'); 
     }
     public function login(Request $request)
     {
-        // Validate the input data
         $credentials = $request->validate([
-            'email' => 'required|email|exists:users,email', // email must exist in the database
-            'password' => 'required|min:6', // password must be at least 6 characters
+            'email' => 'required|email|exists:users,email', 
+            'password' => 'required|min:6', 
         ]);
-
-        // Attempt login
         if (Auth::attempt($credentials, $request->remember)) {
             $user = Auth::user();
 
-            // Check if the user's account is active
             if ($user->status == 0) {
                 Auth::logout(); 
-                alert()->error('Login Failed', 'Akun Anda belum aktif. Silakan hubungi Admin.');
+                // alert()->error('Login Failed', 'Akun Anda belum aktif. Silakan hubungi Admin.');
 
                 return back()->withErrors([
                     'email' => 'Akun Anda belum aktif. Silakan hubungi Admin.',
                 ]);
             }
 
-            // Regenerate the session to avoid session fixation attacks
             $request->session()->regenerate();
-
             alert()->success('Login Successful', 'Welcome, ' . $user->username);
-
-            // Redirect to dashboard based on role
             if ($user->role_name === 'Admin') {
                 return redirect()->intended('/admin/dashboard');
             } else {
                 return redirect()->intended('/user/dashboard');
             }
         }
-
-        // If login fails
-        alert()->error('Login Failed', 'The provided credentials do not match our records.');
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
@@ -135,72 +109,49 @@ public function showLoginForm()
     {
         return view('register');
     }
-
+         
     public function createUser(Request $request)
     {
         try {
-            // Hanya validasi field yang diisi
-            $rules = [];
-
-            // Validasi username jika diisi
-            if ($request->has('username') && !empty($request->username)) {
-                $rules['username'] = 'required|string|max:255|unique:users,username';
-            }
-
-            // Validasi email jika diisi
-            if ($request->has('email') && !empty($request->email)) {
-                $rules['email'] = 'required|email|unique:users,email|max:255';
-            }
-
-            // Validasi nomor telepon jika diisi
-            if ($request->has('no_hp') && !empty($request->no_hp)) {
-                $rules['no_hp'] = 'required|numeric|unique:users,no_hp|digits_between:10,15';
-            }
-
-            // Validasi password jika diisi
-            if ($request->has('password') && !empty($request->password)) {
-                $rules['password'] = 'required|min:8|confirmed';
-            }
-
-            // Validasi lainnya
-            if ($request->has('address') && !empty($request->address)) {
-                $rules['address'] = 'nullable|string|max:255';
-            }
-
-            if ($request->has('jurusan') && !empty($request->jurusan)) {
-                $rules['jurusan'] = 'required|string|max:100';
-            }
-
-            // Terapkan validasi dinamis berdasarkan input
-            $validatedData = $request->validate($rules);
-
-            // Buat user baru dengan status nonaktif
-            User::create([
-                'username' => $validatedData['username'] ?? null,
-                'email' => $validatedData['email'] ?? null,
-                'password' => isset($validatedData['password']) ? Hash::make($validatedData['password']) : null,
-                'role_name' => 'User',
-                'jurusan' => $validatedData['jurusan'] ?? null,
-                'no_hp' => $validatedData['no_hp'] ?? null,
-                'address' => $validatedData['address'] ?? null,
-                'status' => 0, // Status nonaktif
+            $validator = Validator::make($request->all(), [
+                'username' => 'required|string|max:255|unique:users,username',
+                'email' => 'required|email|max:255|unique:users,email',
+                'no_hp' => 'required|numeric|digits_between:10,15|unique:users,no_hp',
+                'password' => 'required|min:8|confirmed',
+                'address' => 'nullable|string|max:255',
+                'jurusan' => 'required|string|max:100',
             ]);
-
-            alert()->success('Akun berhasil dibuat.', 'Akun Anda akan aktif setelah diverifikasi oleh Admin.');
-            return redirect()->route('login');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Tangani validasi error
-            $errors = $e->validator->errors()->all();
-            alert()->error('Terjadi kesalahan validasi:', implode(' ', $errors));
-
-            return back()->withErrors($e->validator)->withInput();
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+    
+            User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role_name' => 'User',
+                'jurusan' => $request->jurusan,
+                'no_hp' => $request->no_hp,
+                'address' => $request->address,
+                'status' => 0,
+            ]);
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Akun berhasil dibuat. Tunggu verifikasi Admin!'
+            ]);
+    
         } catch (\Exception $e) {
-            // Tangani kesalahan umum
-            alert()->error('Terjadi kesalahan:', 'Mohon coba lagi nanti.');
-            return back()->with('error', 'Terjadi kesalahan. Mohon coba lagi nanti.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan. Mohon coba lagi.'
+            ], 500);
         }
     }
-
     public function logout(Request $request)
     {
         Auth::logout();
@@ -215,7 +166,6 @@ public function showLoginForm()
     public function store(Request $request)
     {
         try {
-            // Validasi input
             $validatedData = $request->validate([
                 'username' => 'required|string|max:255|unique:users,username',
                 'email' => 'required|email|max:255|unique:users,email',
@@ -225,8 +175,6 @@ public function showLoginForm()
                 'jurusan' => 'required|string|max:100',
                 'role_name' => 'required|in:Admin,User',
             ]);
-    
-            // Simpan user baru
             User::create([
                 'username' => $validatedData['username'],
                 'email' => $validatedData['email'],
@@ -235,15 +183,13 @@ public function showLoginForm()
                 'jurusan' => $validatedData['jurusan'],
                 'no_hp' => $validatedData['no_hp'],
                 'address' => $validatedData['address'],
-                'status' => 0, // Status default nonaktif
+                'status' => 0, 
             ]);
     
             return response()->json(['success' => true, 'message' => 'User created successfully'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Tangani error validasi
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            // Tangani error lainnya
             Log::error($e->getMessage());
             return response()->json(['message' => 'An error occurred'], 500);
         }
@@ -251,29 +197,26 @@ public function showLoginForm()
     
     public function destroy($id)
     {
-        
         try {
             $user = User::findOrFail($id);
-    
-            // Cek jika user adalah admin seeder, maka tidak bisa dihapus
             if ($user->is_seeder) {
-                alert()->error('Gagal Menghapus', 'Admin seeder tidak dapat dihapus.');
-                return redirect()->route('user-table');
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Admin seeder tidak dapat dihapus.'
+                ], 403);
             }
-            
     
             $user->delete();
     
-            alert()->success('User Dihapus', 'User berhasil dihapus.');
-            return redirect()->route('user-table');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User berhasil dihapus.'
+            ]);
         } catch (Exception $e) {
-            alert()->error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus user.');
-            return redirect()->route('user-table');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menghapus user.'
+            ], 500);
         }
-    }
-    
-    
-
-    
-    
+    }   
 }
