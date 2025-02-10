@@ -29,17 +29,14 @@ class AdminController extends Controller
             return redirect()->route('dashboard');  
         }
     
-        $query = User::query();  
-    
-        if ($request->has('search') && !empty($request->search)) {
-            $query->where('username', 'LIKE', '%' . $request->search . '%');
-        }
-    
-        $users = $query->paginate(10)->appends(['search' => $request->search]); 
+        $users = User::when($request->search, function ($query) use ($request) {
+            $query->where('username', 'LIKE', "%{$request->search}%")
+                  ->orWhere('jurusan', 'LIKE', "%{$request->search}%")
+                  ->orWhere('role_name', 'LIKE', "%{$request->search}%");
+        })->paginate(10)->appends(['search' => $request->search]);
     
         return view('user-table', compact('users'));
-    }
-
+    }    
 
     public function indek()
     {
@@ -52,7 +49,8 @@ class AdminController extends Controller
             'username' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'no_hp' => 'required|numeric|digits_between:10,15|unique:users,no_hp,' . $id,
-            'address' => 'nullable|string|max:255',
+            // 'address' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
             'jurusan' => 'required|string',
             'status' => 'required|in:1,0',
         ]);
@@ -61,7 +59,12 @@ class AdminController extends Controller
             $user = User::findOrFail($id);
             $user->update($validatedData);
     
-            return response()->json(['success' => 'User updated successfully'], 200);
+            // return response()->json(['success' => 'User updated successfully'], 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'redirect_url' => url('/admin/user-datatable') // Pastikan sesuai route yang benar
+            ], 200);
         } catch (\Exception $e) {
             Log::error('Error updating user: ' . $e->getMessage());
             return response()->json(['error' => 'Terjadi kesalahan saat memperbarui user.'], 500);
@@ -74,35 +77,34 @@ class AdminController extends Controller
     }
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email|exists:users,email', 
-            'password' => 'required|min:6', 
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:6',
         ]);
-        if (Auth::attempt($credentials, $request->remember)) {
+    
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
             $user = Auth::user();
-
+    
             if ($user->status == 0) {
-                Auth::logout(); 
-                // alert()->error('Login Failed', 'Akun Anda belum aktif. Silakan hubungi Admin.');
-
-                return back()->withErrors([
-                    'email' => 'Akun Anda belum aktif. Silakan hubungi Admin.',
-                ]);
+                Auth::logout();
+                return response()->json([
+                    'message' => 'Akun Anda belum aktif. Silakan hubungi Admin.'
+                ], 403);
             }
-
+    
             $request->session()->regenerate();
-            alert()->success('Login Successful', 'Welcome, ' . $user->username);
-            if ($user->role_name === 'Admin') {
-                return redirect()->intended('/admin/dashboard');
-            } else {
-                return redirect()->intended('/user/dashboard');
-            }
+            return response()->json([
+                'message' => 'Login berhasil!',
+                'username' => $user->username,
+                'redirect' => $user->role_name === 'Admin' ? url('/admin/dashboard') : url('/user/dashboard')
+            ]);
         }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+    
+        return response()->json([
+            'message' => 'Email atau password salah!'
+        ], 401);
     }
+    
 
 
     public function showRegisterForm()
@@ -155,14 +157,13 @@ class AdminController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        alert()->success('Logged Out', 'You have been successfully logged out.');
-
-        return redirect('/login');
+    
+        // Simpan pesan logout di session
+        return redirect('/login')->with('logout_success', 'You have been successfully logged out.');
     }
+    
     public function store(Request $request)
     {
         try {

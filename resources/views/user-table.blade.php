@@ -292,22 +292,36 @@ $(document).ready(function() {
                     true); // Disable tombol
             },
             success: function(response) {
-                if (response.success) {
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Creating user...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                setTimeout(() => {
                     Swal.fire({
-                        icon: "success",
-                        title: "Success",
-                        text: response.message,
                         toast: true,
                         position: "top-end",
+                        icon: "success",
+                        title: response.message,
                         showConfirmButton: false,
-                        timer: 3000
+                        timer: 2000,
+                        timerProgressBar: true
                     });
 
                     $('#createModal').modal('hide'); // Tutup modal
-                    form.trigger("reset"); // Reset form
-                    location.reload(); // Refresh halaman
-                }
+                    $('#createUserForm').trigger("reset"); // Reset form
+
+                    setTimeout(() => {
+                        window.location.reload(); // Refresh halaman
+                    }, 500);
+                }, 1500);
             },
+
             error: function(xhr) {
                 console.log("Error Response:", xhr.responseJSON); // Debug error di console
 
@@ -321,7 +335,7 @@ $(document).ready(function() {
                         let input = $('[name="' + key + '"]');
                         input.addClass('is-invalid'); // Tambahkan class error
                         input.next('.invalid-feedback').text(value[0])
-                    .show(); // Tampilkan error
+                            .show(); // Tampilkan error
                     });
                 } else {
                     Swal.fire({
@@ -397,34 +411,54 @@ $(document).ready(function() {
         let form = $(this);
         let actionUrl = form.attr('action');
         let formData = form.serialize() + '&_method=PUT';
+        let submitButton = form.find('button[type="submit"]');
+
+        // **Tombol jadi loading**
+        submitButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
         $.ajax({
             url: actionUrl,
             type: 'PUT',
             data: formData,
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
-                    'content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'User updated successfully.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
+                    title: 'Processing...',
+                    text: 'Updating user data...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
                 });
 
-                $('#editModal').modal('hide');
                 setTimeout(() => {
-                    window.location
-                        .reload();
-                }, 500);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'User updated successfully!',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+
+
+                    $('#editModal').modal('hide');
+
+                    setTimeout(() => {
+                        window.location.href = response
+                            .redirect_url; // Redirect ke User DataTable
+                    }, 2000);
+                }, 1500);
             },
             error: function(xhr) {
                 console.log("Error Response:", xhr.responseJSON);
+
+                // **Hapus loading di tombol**
+                submitButton.prop('disabled', false).html(
+                    '<i class="fas fa-save"></i> Save changes');
 
                 if (xhr.status === 422) {
                     let errors = xhr.responseJSON.errors;
@@ -433,10 +467,12 @@ $(document).ready(function() {
                     $('.is-invalid').removeClass('is-invalid');
 
                     $.each(errors, function(key, value) {
-                        let input = $('[name="' + key +
-                            '"]');
+                        let input = $('[name="' + key + '"]');
                         if (input.length > 0) {
                             input.addClass('is-invalid');
+
+                            // **Hapus error lama agar tidak dobel**
+                            input.next('.invalid-feedback').remove();
                             input.after('<div class="invalid-feedback">' + value[
                                 0] + '</div>');
                         }
@@ -453,6 +489,7 @@ $(document).ready(function() {
         });
     });
 });
+
 
 //delete
 function confirmDelete(userId, username) {

@@ -110,44 +110,35 @@
             </ul>
         </div>
         @endif
-
-        <form method="POST" action="{{ route('login') }}">
+        <form id="loginForm">
             @csrf
             <div class="form-floating mb-3">
-                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email"
-                    placeholder="Email" value="{{ old('email') }}" required>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email">
                 <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                @error('email')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <div class="invalid-feedback" id="emailError"></div>
             </div>
             <div class="form-floating mb-3 position-relative">
-            <input type="password" 
-                   class="form-control @error('password') is-invalid @enderror" 
-                   id="password" 
-                   name="password" 
-                   placeholder="Password" 
-                   required>
-            <label for="password"><i class="fas fa-lock"></i> Password</label>
-            <span class="position-absolute top-50 end-0 translate-middle-y me-3 toggle-icon" 
-                  id="togglePassword" 
-                  title="Show/Hide Password">
-                <i class="fas fa-eye"></i>
-            </span>
-            @error('password')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-            
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 toggle-icon" id="togglePassword">
+                    <i class="fas fa-eye"></i>
+                </span>
+                <div class="invalid-feedback" id="passwordError"></div>
+            </div>
+
             <button type="submit" class="btn btn-primary w-100">Login</button>
             <div class="text-center mt-3">
-              <a href="{{ route('register') }}">Don't have an account? Register</a>
+                <a href="{{ route('register') }}">Don't have an account? Register</a>
             </div>
         </form>
+
     </div>
 
-    @include('sweetalert::alert')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- @include('sweetalert::alert')
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
     // Toggle Password Visibility
@@ -162,7 +153,79 @@
             this.querySelector('i').classList.toggle('fa-eye-slash');
         });
     });
-    </script>
-</body>
+    $(document).ready(function() {
+        $("#loginForm").on("submit", function(e) {
+            e.preventDefault(); // Mencegah reload halaman
 
+            // Reset error messages
+            $(".invalid-feedback").text("");
+            $(".form-control").removeClass("is-invalid");
+
+            $.ajax({
+                url: "{{ route('login') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    email: $("#email").val(),
+                    password: $("#password").val(),
+                },
+                beforeSend: function() {
+                    Swal.fire({
+                        title: "Logging in...",
+                        text: "Please wait...",
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Login Berhasil!",
+                        text: "Selamat datang, " + response.username,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = response
+                        .redirect; // Redirect ke halaman dashboard
+                    });
+                },
+                error: function(xhr) {
+                    Swal.close(); // Tutup loading
+
+                    if (xhr.status === 422) { // Validasi error
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.email) {
+                            $("#email").addClass("is-invalid");
+                            $("#emailError").text(errors.email[0]);
+                        }
+                        if (errors.password) {
+                            $("#password").addClass("is-invalid");
+                            $("#passwordError").text(errors.password[0]);
+                        }
+                    } else { // Jika email/password salah
+                        Swal.fire({
+                            icon: "error",
+                            title: "Login Gagal!",
+                            text: xhr.responseJSON.message ||
+                                "Cek kembali email & password Anda"
+                        });
+                    }
+                }
+            });
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+    let logoutMessage = "{{ session('logout_success') }}";
+    if (logoutMessage) {
+        Swal.fire({
+            icon: "success",
+            title: "Logged Out",
+            text: logoutMessage,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+});
+</script>
+</body>
 </html>

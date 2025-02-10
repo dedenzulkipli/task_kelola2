@@ -148,120 +148,127 @@
         this.value = this.value.replace(/[^0-9]/g, '');
     });
     $(document).ready(function() {
-        $(".toggle-password").click(function() {
-            let input = $($(this).attr("toggle"));
-            let icon = $(this).find("i");
+    $(".toggle-password").click(function() {
+        let input = $($(this).attr("toggle"));
+        let icon = $(this).find("i");
 
-            if (input.attr("type") === "password") {
-                input.attr("type", "text");
-                icon.removeClass("fa-eye").addClass("fa-eye-slash");
-            } else {
-                input.attr("type", "password");
-                icon.removeClass("fa-eye-slash").addClass("fa-eye");
-            }
-        });
+        if (input.attr("type") === "password") {
+            input.attr("type", "text");
+            icon.removeClass("fa-eye").addClass("fa-eye-slash");
+        } else {
+            input.attr("type", "password");
+            icon.removeClass("fa-eye-slash").addClass("fa-eye");
+        }
     });
 
-    $(document).ready(function() {
-        $("input, select, textarea").on("input change", function() {
-            validateField($(this));
+    $("input, select, textarea").on("input change", function() {
+        validateField($(this));
+    });
+
+    $("#registerForm").submit(function(e) {
+        e.preventDefault();
+        $(".error-message").text("");
+
+        let isValid = true;
+        $("input, select, textarea").each(function() {
+            if (!validateField($(this))) {
+                isValid = false;
+            }
         });
 
-        $("#registerForm").submit(function(e) {
-            e.preventDefault();
-            $(".error-message").text("");
+        if (!isValid) return; // Stop jika ada error, tanpa proses loading
 
-            let isValid = true;
-            $("input, select, textarea").each(function() {
-                if (!validateField($(this))) {
-                    isValid = false;
+        let formData = $(this).serialize();
+
+        $.ajax({
+            url: "{{ route('register.submit') }}",
+            type: "POST",
+            data: formData,
+            dataType: "json",
+            beforeSend: function() {
+                $("#registerButton").prop("disabled", true).text("Processing...");
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: response.message,
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+
+                    setTimeout(() => {
+                        window.location.href = "{{ route('login') }}";
+                    }, 2000);
                 }
-            });
+            },
+            error: function(xhr) {
+                $("#registerButton").prop("disabled", false).text("Register");
 
-            if (!isValid) return;
-
-            let formData = $(this).serialize();
-            $.ajax({
-                url: "{{ route('register.submit') }}",
-                type: "POST",
-                data: formData,
-                dataType: "json",
-                beforeSend: function() {
-                    $("#registerButton").prop("disabled", true).text("Processing...");
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            toast: true,
-                            position: "top-end",
-                            icon: "success",
-                            title: response.message,
-                            showConfirmButton: false,
-                            timer: 2000,
-                            timerProgressBar: true
-                        });
-
-                        setTimeout(() => {
-                            window.location.href = "{{ route('login') }}";
-                        }, 2000);
-                    }
-                },
-                error: function(xhr) {
-                    $("#registerButton").prop("disabled", false).text("Register");
-
+                if (xhr.status === 422) { 
                     let errors = xhr.responseJSON.errors;
-                    if (errors) {
-                        $.each(errors, function(key, messages) {
-                            $("#error-" + key).text(messages[0]);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Terjadi Kesalahan",
-                            text: "Mohon coba lagi nanti."
-                        });
-                    }
+                    $(".error-message").text(""); // Reset pesan error lama
+
+                    $.each(errors, function(key, messages) {
+                        $("#error-" + key).text(messages[0]);
+                        $(`[name="${key}"]`).addClass("is-invalid");
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Terjadi Kesalahan",
+                        text: "Mohon coba lagi nanti."
+                    });
                 }
-            });
+            }
         });
-
-        function validateField(input) {
-            let value = input.val().trim();
-            let fieldName = input.attr("name");
-            let errorElement = $("#error-" + fieldName);
-            let isValid = true;
-
-            if (value === "") {
-                errorElement.text("Field ini wajib diisi!");
-                isValid = false;
-            } else {
-                errorElement.text("");
-            }
-
-            if (fieldName === "email" && value !== "" && !validateEmail(value)) {
-                errorElement.text("Format email tidak valid!");
-                isValid = false;
-            }
-
-            if (fieldName === "no_hp" && value !== "" && !/^\d+$/.test(value)) {
-                errorElement.text("Nomor HP hanya boleh berisi angka!");
-                isValid = false;
-            }
-
-            if (fieldName === "password" && value.length < 8) {
-                errorElement.text("Password minimal 8 karakter!");
-                isValid = false;
-            }
-            
-
-            return isValid;
-        }
-
-        function validateEmail(email) {
-            let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return regex.test(email);
-        }
     });
+
+    function validateField(input) {
+        let value = input.val().trim();
+        let fieldName = input.attr("name");
+        let errorElement = $("#error-" + fieldName);
+        let isValid = true;
+
+        if (value === "") {
+            errorElement.text("Field ini wajib diisi!");
+            input.addClass("is-invalid");
+            isValid = false;
+        } else {
+            errorElement.text("");
+            input.removeClass("is-invalid");
+        }
+
+        if (fieldName === "email" && value !== "" && !validateEmail(value)) {
+            errorElement.text("Format email tidak valid!");
+            input.addClass("is-invalid");
+            isValid = false;
+        }
+
+        if (fieldName === "no_hp" && value !== "" && !/^\d+$/.test(value)) {
+            errorElement.text("Nomor HP hanya boleh berisi angka!");
+            input.addClass("is-invalid");
+            isValid = false;
+        }
+
+        if (fieldName === "password" && value.length < 8) {
+            errorElement.text("Password minimal 8 karakter!");
+            input.addClass("is-invalid");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function validateEmail(email) {
+        let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+});
+
 </script>
 </body>
 </html>
