@@ -11,73 +11,70 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    body {
-        background: linear-gradient(to right, #007bff, #00c6ff);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .auth-container {
-        background: #ffffff;
-        border-radius: 20px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        width: 600px;
-        animation: slideIn 1s ease-out;
-    }
-
-    .auth-container h3 {
-        text-align: center;
-        color: #007bff;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .error-message {
-        font-size: 12px;
-        color: #dc3545;
-        margin-bottom: 5px;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateY(30px);
-            opacity: 0;
+        body {
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        to {
-            transform: translateY(0);
-            opacity: 1;
+        .auth-container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 600px;
+            animation: slideIn 1s ease-out;
         }
-    }
 
-    .toggle-password {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #6c757d;
-    }
+        .auth-container h3 {
+            text-align: center;
+            color: #007bff;
+            font-weight: 600;
+        }
 
-    .toggle-password:hover {
-        color: #007bff;
-    }
+        .error-message {
+            font-size: 12px;
+            color: #dc3545;
+            margin-top: 5px;
+        }
 
-    .form-floating {
-        position: relative;
-    }
+        .form-floating {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .toggle-password:hover {
+            color: #007bff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="auth-container">
         <h3><i class="fas fa-user-plus"></i> Register</h3>
-
         <form id="registerForm">
             @csrf
 
@@ -100,16 +97,9 @@
             </div>
 
             <div class="mb-3">
-                <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
-                <textarea class="form-control" id="address" name="address" rows="3"
-                    placeholder="Enter your address"></textarea>
-                <div class="error-message" id="error-address"></div>
-            </div>
-
-            <div class="mb-3">
                 <label for="jurusan"><i class="fas fa-graduation-cap"></i> Jurusan</label>
                 <select class="form-control" id="jurusan" name="jurusan">
-                    <!-- <option value="" selected disabled>-- Pilih Jurusan --</option> -->
+                    <option value="" selected disabled>-- Pilih Jurusan --</option>
                     <option value="Teknik Informatika">Teknik Informatika</option>
                     <option value="Sistem Informasi">Sistem Informasi</option>
                     <option value="Manajemen">Manajemen</option>
@@ -118,21 +108,25 @@
                 <div class="error-message" id="error-jurusan"></div>
             </div>
 
-            <div class="form-floating mb-3">
+            <div class="mb-3">
+                <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your address"></textarea>
+                <div class="error-message" id="error-address"></div>
+            </div>
+
+            <div class="form-floating mb-3 position-relative">
                 <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                 <label for="password"><i class="fas fa-lock"></i> Password</label>
-                <div class="error-message" id="error-password"></div>
                 <span class="toggle-password" toggle="#password"><i class="fas fa-eye"></i></span>
+                <div class="error-message" id="error-password"></div>
             </div>
 
-            <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
-                    placeholder="Confirm Password">
+            <div class="form-floating mb-3 position-relative">
+                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm Password">
                 <label for="password_confirmation"><i class="fas fa-lock"></i> Confirm Password</label>
-                <div class="error-message" id="error-password_confirmation"></div>
                 <span class="toggle-password" toggle="#password_confirmation"><i class="fas fa-eye"></i></span>
+                <div class="error-message" id="error-password_confirmation"></div>
             </div>
-
 
             <button type="submit" id="registerButton" class="btn btn-primary w-100">Register</button>
 
@@ -141,134 +135,70 @@
             </div>
         </form>
     </div>
-    <!--  -->
+
     <script>
-    document.getElementById('no_hp').addEventListener('input', function(e) {
-        // Hanya izinkan angka
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
-    $(document).ready(function() {
-    $(".toggle-password").click(function() {
-        let input = $($(this).attr("toggle"));
-        let icon = $(this).find("i");
+        $(document).ready(function() {
+            $(".toggle-password").click(function() {
+                let input = $($(this).attr("toggle"));
+                let icon = $(this).find("i");
 
-        if (input.attr("type") === "password") {
-            input.attr("type", "text");
-            icon.removeClass("fa-eye").addClass("fa-eye-slash");
-        } else {
-            input.attr("type", "password");
-            icon.removeClass("fa-eye-slash").addClass("fa-eye");
-        }
-    });
-
-    $("input, select, textarea").on("input change", function() {
-        validateField($(this));
-    });
-
-    $("#registerForm").submit(function(e) {
-        e.preventDefault();
-        $(".error-message").text("");
-
-        let isValid = true;
-        $("input, select, textarea").each(function() {
-            if (!validateField($(this))) {
-                isValid = false;
-            }
-        });
-
-        if (!isValid) return; // Stop jika ada error, tanpa proses loading
-
-        let formData = $(this).serialize();
-
-        $.ajax({
-            url: "{{ route('register.submit') }}",
-            type: "POST",
-            data: formData,
-            dataType: "json",
-            beforeSend: function() {
-                $("#registerButton").prop("disabled", true).text("Processing...");
-            },
-            success: function(response) {
-                if (response.success) {
-                    Swal.fire({
-                        toast: true,
-                        position: "top-end",
-                        icon: "success",
-                        title: response.message,
-                        showConfirmButton: false,
-                        timer: 2000,
-                        timerProgressBar: true
-                    });
-
-                    setTimeout(() => {
-                        window.location.href = "{{ route('login') }}";
-                    }, 2000);
-                }
-            },
-            error: function(xhr) {
-                $("#registerButton").prop("disabled", false).text("Register");
-
-                if (xhr.status === 422) { 
-                    let errors = xhr.responseJSON.errors;
-                    $(".error-message").text(""); // Reset pesan error lama
-
-                    $.each(errors, function(key, messages) {
-                        $("#error-" + key).text(messages[0]);
-                        $(`[name="${key}"]`).addClass("is-invalid");
-                    });
+                if (input.attr("type") === "password") {
+                    input.attr("type", "text");
+                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
                 } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Terjadi Kesalahan",
-                        text: "Mohon coba lagi nanti."
-                    });
+                    input.attr("type", "password");
+                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
                 }
-            }
+            });
+
+            $("#no_hp").on("input", function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            $("#registerForm").submit(function(e) {
+                e.preventDefault();
+                let formData = $(this).serialize();
+                $("#registerButton").prop("disabled", true).text("Processing...");
+
+                $.ajax({
+                    url: "{{ route('register.submit') }}",
+                    type: "POST",
+                    data: formData,
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "success",
+                                title: response.message,
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+
+                            setTimeout(() => {
+                                window.location.href = "{{ route('login') }}";
+                            }, 2000);
+                        }
+                    },
+                    error: function(xhr) {
+                        $("#registerButton").prop("disabled", false).text("Register");
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            $(".error-message").text("");
+
+                            $.each(errors, function(key, messages) {
+                                $("#error-" + key).text(messages[0]);
+                                $(`[name="${key}"]`).addClass("is-invalid");
+                            });
+                        } else {
+                            Swal.fire({ icon: "error", title: "Terjadi Kesalahan", text: "Mohon coba lagi nanti." });
+                        }
+                    }
+                });
+            });
         });
-    });
-
-    function validateField(input) {
-        let value = input.val().trim();
-        let fieldName = input.attr("name");
-        let errorElement = $("#error-" + fieldName);
-        let isValid = true;
-
-        if (value === "") {
-            errorElement.text("Field ini wajib diisi!");
-            input.addClass("is-invalid");
-            isValid = false;
-        } else {
-            errorElement.text("");
-            input.removeClass("is-invalid");
-        }
-
-        if (fieldName === "email" && value !== "" && !validateEmail(value)) {
-            errorElement.text("Format email tidak valid!");
-            input.addClass("is-invalid");
-            isValid = false;
-        }
-
-        if (fieldName === "no_hp" && value !== "" && !/^\d+$/.test(value)) {
-            errorElement.text("Nomor HP hanya boleh berisi angka!");
-            input.addClass("is-invalid");
-            isValid = false;
-        }
-
-        if (fieldName === "password" && value.length < 8) {
-            errorElement.text("Password minimal 8 karakter!");
-            input.addClass("is-invalid");
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
-    function validateEmail(email) {
-        let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
-});
-
-</script>
+    </script>
 </body>
+
 </html>

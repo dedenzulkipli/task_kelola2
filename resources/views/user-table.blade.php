@@ -5,7 +5,6 @@
 @section('content')
 <div class="container mt-4">
     <h2 class="text-center mb-4">User Management</h2>
-
     <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-table me-1"></i> User DataTable
@@ -22,7 +21,6 @@
                         </button>
                     </form>
                 </div>
-
                 <!-- Tombol Create User -->
                 <div class="col-md-6 text-end">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
@@ -69,14 +67,10 @@
                                     data-jurusan="{{ $user->jurusan }}" data-status="{{ $user->status }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-
                                 <button type="button" class="btn btn-danger btn-sm"
                                     onclick="confirmDelete('{{ $user->id }} + {{ $user->username }}')">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-
-
-
                                 @else
                                 <span class="text-muted">Admin Seeder</span>
                                 @endif
@@ -84,7 +78,7 @@
                         </tr>
                         @endforeach
                     </tbody>
-                    <!-- Modal Edit Global -->
+                    <!-- Modal Edit -->
                     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -102,41 +96,37 @@
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <label class="form-label">Username</label>
-                                                <input type="text" class="form-control" id="username" name="username">
-                                                <div class="invalid-feedback"></div>
+                                                <input type="text" class="form-control" id="edit_username"
+                                                    name="username">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Email</label>
-                                                <input type="email" class="form-control" id="email" name="email">
-                                                <div class="invalid-feedback"></div>
+                                                <input type="email" class="form-control" id="edit_email" name="email">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">No HP</label>
-                                                <input type="tel" class="form-control" id="no_hp" name="no_hp">
-                                                <div class="invalid-feedback"></div>
+                                                <input type="tel" class="form-control" id="edit_no_hp" name="no_hp">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Address</label>
-                                                <textarea class="form-control" id="address" name="address"></textarea>
-                                                <div class="invalid-feedback"></div>
+                                                <textarea class="form-control" id="edit_address"
+                                                    name="address"></textarea>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Jurusan</label>
-                                                <select class="form-control" id="jurusan" name="jurusan">
+                                                <select class="form-control" id="edit_jurusan" name="jurusan">
                                                     <option value="Teknik Informatika">Teknik Informatika</option>
                                                     <option value="Sistem Informasi">Sistem Informasi</option>
                                                     <option value="Manajemen">Manajemen</option>
                                                     <option value="Akuntansi">Akuntansi</option>
                                                 </select>
-                                                <div class="invalid-feedback"></div>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Status</label>
-                                                <select class="form-control" id="status" name="status">
+                                                <select class="form-control" id="edit_status" name="status">
                                                     <option value="1">Active</option>
                                                     <option value="0">Inactive</option>
                                                 </select>
-                                                <div class="invalid-feedback"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -153,98 +143,97 @@
                         </div>
                     </div>
                 </table>
-                <!-- Modal -->
+                <!-- Modal create -->
                 <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel"
                     aria-hidden="true">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
                             <form action="{{ route('users.store') }}" method="POST" id="createUserForm">
                                 @csrf
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="createModalLabel">Create User</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title"><i class="fas fa-user-plus"></i> Create User</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <!-- Username -->
-                                    <div class="form-group mb-3">
-                                        <label for="username">Username</label>
-                                        <input type="text" class="form-control" id="username" name="username">
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <!-- Email -->
-                                    <div class="form-group mb-3">
-                                        <label for="email">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email">
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <!-- No HP -->
-                                    <div class="form-group mb-3">
-                                        <label for="no_hp">No HP</label>
-                                        <input type="text" class="form-control" id="no_hp" name="no_hp">
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <!-- Password -->
-                                    <div class="form-group mb-3 position-relative">
-                                        <label for="password3">Password</label>
-                                        <div class="input-group">
-                                            <input type="password" class="form-control" id="password3" name="password">
-                                            <button type="button" class="btn btn-outline-secondary toggle-password">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="createUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="createUsername" name="username">
+                                            <div class="invalid-feedback"></div>
                                         </div>
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <!-- Confirm Password -->
-                                    <div class="form-group mb-3 position-relative">
-                                        <label for="password_confirmation2">Confirm Password</label>
-                                        <div class="input-group">
-                                            <input type="password" class="form-control" id="password_confirmation2"
-                                                name="password_confirmation">
-                                            <button type="button" class="btn btn-outline-secondary toggle-password">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                        <div class="col-md-6">
+                                            <label for="createEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="createEmail" name="email">
+                                            <div class="invalid-feedback"></div>
                                         </div>
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <select class="form-control" id="jurusan" name="jurusan">
-                                        <option value="" selected disabled>-- Pilih Jurusan --</option>
-                                        <option value="Teknik Informatika">Teknik Informatika</option>
-                                        <option value="Sistem Informasi">Sistem Informasi</option>
-                                        <option value="Manajemen">Manajemen</option>
-                                        <option value="Akuntansi">Akuntansi</option>
-                                        <span class="invalid-feedback"></span>
-                                    </select>
-                                    <div class="form-group mb-3">
-                                        <label for="address">Address</label>
-                                        <textarea class="form-control" id="address" name="address"></textarea>
-                                        <span class="invalid-feedback"></span>
-                                    </div>
-
-                                    <div class="form-group mb-3">
-                                        <label for="role_name">Role</label>
-                                        <select class="form-control" id="role_name" name="role_name">
-                                            <option value="User">User</option>
-                                            <option value="Admin">Admin</option>
-                                        </select>
-                                        <span class="invalid-feedback"></span>
+                                        <div class="col-md-6">
+                                            <label for="createNoHp" class="form-label">No HP</label>
+                                            <input type="text" class="form-control" id="createNoHp" name="no_hp">
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="createJurusan" class="form-label">Jurusan</label>
+                                            <select class="form-control" id="createJurusan" name="jurusan">
+                                                <option value="" selected disabled>-- Pilih Jurusan --</option>
+                                                <option value="Teknik Informatika">Teknik Informatika</option>
+                                                <option value="Sistem Informasi">Sistem Informasi</option>
+                                                <option value="Manajemen">Manajemen</option>
+                                                <option value="Akuntansi">Akuntansi</option>
+                                            </select>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label for="createAddress" class="form-label">Address</label>
+                                            <textarea class="form-control" id="createAddress" name="address"
+                                                rows="2"></textarea>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="createPassword" class="form-label">Password</label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="createPassword"
+                                                    name="password">
+                                                <button type="button" class="btn btn-outline-secondary toggle-password">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="createPasswordConfirmation" class="form-label">Confirm
+                                                Password</label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control"
+                                                    id="createPasswordConfirmation" name="password_confirmation">
+                                                <button type="button" class="btn btn-outline-secondary toggle-password">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="createRole" class="form-label">Role</label>
+                                            <select class="form-control" id="createRole" name="role_name">
+                                                <option value="User">User</option>
+                                                <option value="Admin">Admin</option>
+                                            </select>
+                                            <div class="invalid-feedback"></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Create</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> Create
+                                    </button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
-
                 <div class="d-flex justify-content-center mt-4">
                     <ul class="pagination pagination-sm">
                         {{ $users->links('pagination::bootstrap-4') }}
@@ -272,24 +261,23 @@ document.querySelectorAll('input[name="no_hp"]').forEach(function(input) {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 });
-
+//ajax create
 $(document).ready(function() {
     $('#createUserForm').on('submit', function(e) {
-        e.preventDefault(); // Mencegah form submit default
+        e.preventDefault();
 
         let form = $(this);
-        let formData = form.serialize(); // Ambil data form
+        let formData = form.serialize(); 
 
         $.ajax({
-            url: form.attr("action"), // Ambil URL dari atribut action form
+            url: form.attr("action"),
             type: "POST",
             data: formData,
             dataType: "json",
             beforeSend: function() {
-                $('.invalid-feedback').text("").hide(); // Reset pesan error
+                $('.invalid-feedback').text("").hide(); 
                 $('.is-invalid').removeClass('is-invalid');
-                $('#createUserForm button[type="submit"]').prop('disabled',
-                    true); // Disable tombol
+                $('#createUserForm button[type="submit"]').prop('disabled', true);
             },
             success: function(response) {
                 Swal.fire({
@@ -304,38 +292,40 @@ $(document).ready(function() {
 
                 setTimeout(() => {
                     Swal.fire({
-                        toast: true,
-                        position: "top-end",
                         icon: "success",
                         title: response.message,
+                        toast: true,
+                        position: "top-end",
                         showConfirmButton: false,
-                        timer: 2000,
+                        timer: 1500,
                         timerProgressBar: true
                     });
 
-                    $('#createModal').modal('hide'); // Tutup modal
-                    $('#createUserForm').trigger("reset"); // Reset form
+                    $('#createModal').modal('hide'); 
+                    $('#createUserForm').trigger("reset"); 
 
                     setTimeout(() => {
-                        window.location.reload(); // Refresh halaman
+                        location.reload(); 
                     }, 500);
-                }, 1500);
+                }, 1200);
             },
 
             error: function(xhr) {
-                console.log("Error Response:", xhr.responseJSON); // Debug error di console
+                console.error("Error Response:", xhr
+                    .responseJSON); 
 
                 if (xhr.status === 422) {
                     let errors = xhr.responseJSON.errors;
 
-                    $('.invalid-feedback').text("").hide(); // Reset pesan error
-                    $('.is-invalid').removeClass('is-invalid'); // Hapus tanda error lama
+                    $('.invalid-feedback').text("").hide(); 
+                    $('.is-invalid').removeClass('is-invalid');
 
                     $.each(errors, function(key, value) {
                         let input = $('[name="' + key + '"]');
-                        input.addClass('is-invalid'); // Tambahkan class error
-                        input.next('.invalid-feedback').text(value[0])
-                            .show(); // Tampilkan error
+                        input.addClass('is-invalid'); 
+                        input.closest('.col-md-6, .col-md-12').find(
+                                '.invalid-feedback')
+                            .text(value[0]).show(); 
                     });
                 } else {
                     Swal.fire({
@@ -347,73 +337,84 @@ $(document).ready(function() {
             },
 
             complete: function() {
-                $('#createUserForm button[type="submit"]').prop('disabled',
-                    false); // Aktifkan kembali tombol submit
+                $('#createUserForm button[type="submit"]').prop('disabled', false);
             }
         });
     });
 
-    // Toggle password visibility
+
     $(".toggle-password").click(function() {
         let input = $(this).prev("input");
         let icon = $(this).find("i");
 
-        if (input.attr("type") === "password") {
-            input.attr("type", "text");
-            icon.removeClass("fa-eye").addClass("fa-eye-slash");
-        } else {
-            input.attr("type", "password");
-            icon.removeClass("fa-eye-slash").addClass("fa-eye");
-        }
+        input.attr("type", input.attr("type") === "password" ? "text" : "password");
+        icon.toggleClass("fa-eye fa-eye-slash");
     });
 
-    // Reset form saat modal ditutup
     $('#createModal').on('hidden.bs.modal', function() {
         $('#createUserForm').trigger("reset");
-        $('#jurusan').val('');
+        $('#createJurusan').val(''); 
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').text("").hide();
     });
 });
 
+//ajax edit
+$('.editUserBtn').on('click', function() {
+    let userId = $(this).data('id');
+
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
 
 
-//editt modal
-$(document).ready(function() {
-    $('.editUserBtn').on('click', function() {
-        let userId = $(this).data('id');
-        let username = $(this).data('username');
-        let email = $(this).data('email');
-        let no_hp = $(this).data('no_hp');
-        let address = $(this).data('address');
-        let jurusan = $(this).data('jurusan');
-        let status = $(this).data('status');
+    let username = $(this).data('username') || '';
+    let email = $(this).data('email') || '';
+    let no_hp = $(this).data('no_hp') || '';
+    let address = $(this).data('address') || '';
+    let jurusan = $(this).data('jurusan') || '';
+    let status = $(this).data('status');
 
-        $('#userId').val(userId);
-        $('#username').val(username);
-        $('#email').val(email);
-        $('#no_hp').val(no_hp);
-        $('#address').val(address);
-        $('#jurusan').val(jurusan);
-        $('#status').val(status);
 
-        $('#editUserForm').attr('action', '/admin/users/update/' + userId);
+    $('#userId').val(userId);
+    $('#edit_username').val(username);
+    $('#edit_email').val(email);
+    $('#edit_no_hp').val(no_hp);
+    $('#edit_address').val(address);
+    $('#edit_jurusan').val(jurusan);
 
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').remove();
 
-        $('#editModal').modal('show');
-    });
+    if (status !== undefined && status !== null) {
+        $('#edit_status').val(status.toString()).change();
+    }
+
+
+    $('#editUserForm').attr('action', `/admin/users/update/${userId}`);
+
+    $('#editModal').modal('show');
+});
 
     $('#editUserForm').on('submit', function(e) {
         e.preventDefault();
 
         let form = $(this);
         let actionUrl = form.attr('action');
-        let formData = form.serialize() + '&_method=PUT';
+        let formData = form.serialize();
         let submitButton = form.find('button[type="submit"]');
 
-        // **Tombol jadi loading**
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+
+ 
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Updating user...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         submitButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
         $.ajax({
@@ -425,54 +426,32 @@ $(document).ready(function() {
             },
             success: function(response) {
                 Swal.fire({
-                    title: 'Processing...',
-                    text: 'Updating user data...',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    icon: "success",
+                    title: response.message || "User updated successfully!",
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
                 });
 
+                $('#editModal').modal('hide');
+
                 setTimeout(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'User updated successfully!',
-                        showConfirmButton: false,
-                        timer: 2000,
-                        timerProgressBar: true
-                    });
-
-
-                    $('#editModal').modal('hide');
-
-                    setTimeout(() => {
-                        window.location.href = response
-                            .redirect_url; // Redirect ke User DataTable
-                    }, 2000);
-                }, 1500);
+                    window.location.reload();
+                }, 1000);
             },
             error: function(xhr) {
-                console.log("Error Response:", xhr.responseJSON);
-
-                // **Hapus loading di tombol**
+                Swal.close(); 
                 submitButton.prop('disabled', false).html(
                     '<i class="fas fa-save"></i> Save changes');
 
                 if (xhr.status === 422) {
                     let errors = xhr.responseJSON.errors;
-
-                    $('.invalid-feedback').remove();
-                    $('.is-invalid').removeClass('is-invalid');
-
                     $.each(errors, function(key, value) {
-                        let input = $('[name="' + key + '"]');
+                        let input = $('#edit_' + key);
                         if (input.length > 0) {
                             input.addClass('is-invalid');
-
-                            // **Hapus error lama agar tidak dobel**
-                            input.next('.invalid-feedback').remove();
                             input.after('<div class="invalid-feedback">' + value[
                                 0] + '</div>');
                         }
@@ -485,11 +464,19 @@ $(document).ready(function() {
                             'An unexpected error occurred.',
                     });
                 }
+            },
+            complete: function() {
+                submitButton.prop('disabled', false).html(
+                    '<i class="fas fa-save"></i> Save changes');
             }
         });
     });
-});
 
+    $('#editModal').on('hidden.bs.modal', function() {
+        $('#editUserForm')[0].reset();
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+    });
 
 //delete
 function confirmDelete(userId, username) {
@@ -504,24 +491,32 @@ function confirmDelete(userId, username) {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Menghapus...',
+                text: 'Mohon tunggu sebentar.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading(); 
+                }
+            });
+
             $.ajax({
-                url: '/admin/users/' + userId,
-                type: 'POST',
-                data: {
-                    _method: 'DELETE',
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                url: `/admin/users/${userId}`,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil!',
-                        text: 'User berhasil dihapus.',
+                        text: response.message,
                         showConfirmButton: false,
                         timer: 2000
                     });
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                    setTimeout(() => window.location.reload(), 1500);
                 },
                 error: function(xhr) {
                     let message = xhr.responseJSON?.message || 'Terjadi kesalahan!';
