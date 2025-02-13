@@ -11,64 +11,65 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background: linear-gradient(to right, #007bff, #00c6ff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    body {
+        background: linear-gradient(to right, #007bff, #00c6ff);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .auth-container {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        width: 600px;
+        animation: slideIn 1s ease-out;
+    }
+
+    .auth-container h3 {
+        text-align: center;
+        color: #007bff;
+        font-weight: 600;
+    }
+
+    .error-message {
+        font-size: 12px;
+        color: #dc3545;
+        margin-top: 5px;
+    }
+
+    .form-floating {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+    }
+
+    .toggle-password:hover {
+        color: #007bff;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
         }
 
-        .auth-container {
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 600px;
-            animation: slideIn 1s ease-out;
+        to {
+            transform: translateY(0);
+            opacity: 1;
         }
-
-        .auth-container h3 {
-            text-align: center;
-            color: #007bff;
-            font-weight: 600;
-        }
-
-        .error-message {
-            font-size: 12px;
-            color: #dc3545;
-            margin-top: 5px;
-        }
-
-        .form-floating {
-            position: relative;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6c757d;
-        }
-
-        .toggle-password:hover {
-            color: #007bff;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    }
     </style>
 </head>
 
@@ -110,7 +111,8 @@
 
             <div class="mb-3">
                 <label for="address"><i class="fas fa-map-marker-alt"></i> Address</label>
-                <textarea class="form-control" id="address" name="address" rows="3" placeholder="Enter your address"></textarea>
+                <textarea class="form-control" id="address" name="address" rows="3"
+                    placeholder="Enter your address"></textarea>
                 <div class="error-message" id="error-address"></div>
             </div>
 
@@ -122,7 +124,8 @@
             </div>
 
             <div class="form-floating mb-3 position-relative">
-                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm Password">
+                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
+                    placeholder="Confirm Password">
                 <label for="password_confirmation"><i class="fas fa-lock"></i> Confirm Password</label>
                 <span class="toggle-password" toggle="#password_confirmation"><i class="fas fa-eye"></i></span>
                 <div class="error-message" id="error-password_confirmation"></div>
@@ -137,67 +140,89 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            $(".toggle-password").click(function() {
-                let input = $($(this).attr("toggle"));
-                let icon = $(this).find("i");
+    $(document).ready(function() {
+        $(".toggle-password").click(function() {
+            let input = $($(this).attr("toggle"));
+            let icon = $(this).find("i");
 
-                if (input.attr("type") === "password") {
-                    input.attr("type", "text");
-                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
-                } else {
-                    input.attr("type", "password");
-                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                icon.removeClass("fa-eye").addClass("fa-eye-slash");
+            } else {
+                input.attr("type", "password");
+                icon.removeClass("fa-eye-slash").addClass("fa-eye");
+            }
+        });
+
+        $("#no_hp").on("input", function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // ✅ Hapus error saat mulai mengetik, tapi tidak reset nilai input
+        $("input, textarea, select").on("input change", function() {
+            $(this).removeClass("is-invalid");
+            $("#error-" + $(this).attr("name")).text("");
+        });
+
+        $("#registerForm").submit(function(e) {
+            e.preventDefault();
+            let formData = $(this).serialize();
+
+            $.ajax({
+                url: "{{ route('register.submit') }}",
+                type: "POST",
+                data: formData,
+                dataType: "json",
+
+                // ✅ Tampilkan loading dengan SweetAlert sebelum AJAX dikirim
+                beforeSend: function() {
+                    Swal.fire({
+                        title: "Mendaftarkan akun...",
+                        text: "Mohon tunggu sebentar...",
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading(),
+                        backdrop: "rgba(0,0,0,0.6)",
+                    });
+                },
+
+                success: function(response) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil!",
+                        text: response.message,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    setTimeout(() => {
+                        window.location.href = "{{ route('login') }}";
+                    }, 2000);
+                },
+
+                error: function(xhr) {
+                    Swal.close(); // ✅ Tutup loading saat ada error
+
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $(".error-message").text("");
+                        $(".is-invalid").removeClass("is-invalid");
+
+                        $.each(errors, function(key, messages) {
+                            $("#error-" + key).text(messages[0]);
+                            $(`[name="${key}"]`).addClass("is-invalid");
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Terjadi Kesalahan",
+                            text: "Mohon coba lagi nanti."
+                        });
+                    }
                 }
             });
-
-            $("#no_hp").on("input", function() {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-
-            $("#registerForm").submit(function(e) {
-                e.preventDefault();
-                let formData = $(this).serialize();
-                $("#registerButton").prop("disabled", true).text("Processing...");
-
-                $.ajax({
-                    url: "{{ route('register.submit') }}",
-                    type: "POST",
-                    data: formData,
-                    dataType: "json",
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                toast: true,
-                                position: "top-end",
-                                icon: "success",
-                                title: response.message,
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-
-                            setTimeout(() => {
-                                window.location.href = "{{ route('login') }}";
-                            }, 2000);
-                        }
-                    },
-                    error: function(xhr) {
-                        $("#registerButton").prop("disabled", false).text("Register");
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            $(".error-message").text("");
-
-                            $.each(errors, function(key, messages) {
-                                $("#error-" + key).text(messages[0]);
-                                $(`[name="${key}"]`).addClass("is-invalid");
-                            });
-                        } else {
-                            Swal.fire({ icon: "error", title: "Terjadi Kesalahan", text: "Mohon coba lagi nanti." });
-                        }
-                    }
-                });
-            });
         });
+
+    });
     </script>
 </body>
 

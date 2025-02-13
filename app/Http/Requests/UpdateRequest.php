@@ -26,7 +26,7 @@ class UpdateRequest extends FormRequest
         $id = $this->route('id'); // Ambil ID dari route
 
         return [
-            'username' => 'required|string|max:255',
+             'username' => 'required|string|max:255|unique:users,username,' . $id,
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'no_hp' => 'required|numeric|digits_between:10,15|unique:users,no_hp,' . $id,
             'address' => 'required|string|max:255',

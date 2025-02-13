@@ -18,6 +18,7 @@
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 </head>
 
+
 <body class="sb-nav-fixed">
     @include('sweetalert::alert')
     @include('template.navbar')
@@ -70,13 +71,13 @@
     //     toastr[toast.type](toast.message);  
     // @endif
 
-    // Inisialisasi Dropdown Bootstrap 5
-    document.addEventListener("DOMContentLoaded", function() {
-        let dropdowns = document.querySelectorAll('.dropdown-toggle');
-        dropdowns.forEach(function(dropdown) {
-            new bootstrap.Dropdown(dropdown);
-        });
-    });
+    // // Inisialisasi Dropdown Bootstrap 5
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     let dropdowns = document.querySelectorAll('.dropdown-toggle');
+    //     dropdowns.forEach(function(dropdown) {
+    //         new bootstrap.Dropdown(dropdown);
+    //     });
+    // });
       
     </script>
 

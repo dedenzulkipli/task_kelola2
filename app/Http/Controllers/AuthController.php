@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -18,37 +19,47 @@ class AuthController extends Controller
         return view('login');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|min:6',
-        ]);
+        $user = \App\Models\User::where('email', $request->email)->first();
     
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
-            $user = Auth::user();
-    
-            if ($user->status == 0) {
-                Auth::logout();
-                return response()->json(['message' => 'Akun Anda belum aktif. Silakan hubungi Admin.'], 403);
-            }
-    
-            $request->session()->regenerate();
+        if (!$user) {
             return response()->json([
-                'message' => 'Login berhasil!',
-                'username' => $user->username,
-                'redirect' => $user->role_name === 'Admin' ? url('/admin/dashboard') : url('/user/dashboard')
-            ]);
+                'errors' => ['email' => ['Email tidak terdaftar!']]
+            ], 422);
         }
     
-        return response()->json(['message' => 'Email atau password salah!'], 401);
+        if (!Auth::attempt($request->only('email', 'password'), $request->remember)) {
+            return response()->json([
+                'errors' => ['password' => ['Password salah!']]
+            ], 422);
+        }
+    
+        if ($user->status == 0) {
+            Auth::logout();
+            return response()->json(['message' => 'Akun Anda belum aktif. Silakan hubungi Admin.'], 403);
+        }
+    
+        $request->session()->regenerate();
+        return response()->json([
+            'message' => 'Login berhasil!',
+            'username' => $user->username,
+            'redirect' => $user->role_name === 'Admin' ? url('/admin/dashboard') : url('/user/dashboard')
+        ]);
     }
+    
 
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login')->with('logout_success', 'You have been successfully logged out.');
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Anda berhasil logout!',
+            'redirect' => route('login') // Otomatis ambil route login
+        ]);
     }
+    
 }

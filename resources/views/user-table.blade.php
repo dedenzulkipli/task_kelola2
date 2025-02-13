@@ -197,9 +197,10 @@
                                                 <button type="button" class="btn btn-outline-secondary toggle-password">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
+                                                <div class="invalid-feedback"></div>
                                             </div>
-                                            <div class="invalid-feedback"></div>
                                         </div>
+
                                         <div class="col-md-6">
                                             <label for="createPasswordConfirmation" class="form-label">Confirm
                                                 Password</label>
@@ -209,17 +210,18 @@
                                                 <button type="button" class="btn btn-outline-secondary toggle-password">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
+                                                <div class="invalid-feedback"></div>
                                             </div>
-                                            <div class="invalid-feedback"></div>
                                         </div>
-                                        <div class="col-md-6">
+
+                                        <div class="col-md-6 col-lg-4">
                                             <label for="createRole" class="form-label">Role</label>
-                                            <select class="form-control" id="createRole" name="role_name">
+                                            <select class="form-select w-75" id="createRole" name="role_name">
                                                 <option value="User">User</option>
                                                 <option value="Admin">Admin</option>
                                             </select>
-                                            <div class="invalid-feedback"></div>
                                         </div>
+
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -251,9 +253,16 @@
 @section('scripts')
 <script>
 // Submit form pencarian otomatis
+let timeout = null;
+
 document.getElementById('searchInput').addEventListener('input', function() {
-    document.getElementById('searchForm').submit();
+    clearTimeout(timeout); // Hapus timer sebelumnya
+
+    timeout = setTimeout(() => {
+        document.getElementById('searchForm').submit();
+    }, 800);
 });
+
 
 // Batasi input No HP agar hanya angka
 document.querySelectorAll('input[name="no_hp"]').forEach(function(input) {
@@ -261,137 +270,142 @@ document.querySelectorAll('input[name="no_hp"]').forEach(function(input) {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 });
-//ajax create
+// AJAX Create
 $(document).ready(function() {
-    $('#createUserForm').on('submit', function(e) {
-        e.preventDefault();
+    $(document).ready(function() {
+        $('#createUserForm').on('submit', function(e) {
+            e.preventDefault();
 
-        let form = $(this);
-        let formData = form.serialize(); 
+            let form = $(this);
+            let formData = form.serialize();
 
-        $.ajax({
-            url: form.attr("action"),
-            type: "POST",
-            data: formData,
-            dataType: "json",
-            beforeSend: function() {
-                $('.invalid-feedback').text("").hide(); 
-                $('.is-invalid').removeClass('is-invalid');
-                $('#createUserForm button[type="submit"]').prop('disabled', true);
-            },
-            success: function(response) {
-                Swal.fire({
-                    title: 'Processing...',
-                    text: 'Creating user...',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: formData,
+                dataType: "json",
+                beforeSend: function() {
+                    $('.invalid-feedback').text("").hide();
+                    $('.is-invalid').removeClass('is-invalid');
+                    $('#createUserForm button[type="submit"]').prop('disabled',
+                        true);
 
-                setTimeout(() => {
+                    // ✅ Indikator loading sebelum proses
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Creating user...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response) {
+                    // ✅ Tutup loading setelah sukses
+                    Swal.close();
+
                     Swal.fire({
                         icon: "success",
                         title: response.message,
                         toast: true,
                         position: "top-end",
                         showConfirmButton: false,
-                        timer: 1500,
+                        timer: 2500,
                         timerProgressBar: true
                     });
 
-                    $('#createModal').modal('hide'); 
-                    $('#createUserForm').trigger("reset"); 
+                    $('#createModal').modal('hide');
+                    $('#createUserForm').trigger("reset");
 
                     setTimeout(() => {
-                        location.reload(); 
+                        location.reload();
                     }, 500);
-                }, 1200);
-            },
+                },
+                error: function(xhr) {
+                    // ✅ Tutup loading jika terjadi error
+                    Swal.close();
 
-            error: function(xhr) {
-                console.error("Error Response:", xhr
-                    .responseJSON); 
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
 
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
+                        // ✅ Proses error terjadi, biarkan modal tetap terbuka!
+                        $.each(errors, function(key, value) {
+                            let input = $('[name="' + key + '"]');
+                            input.addClass('is-invalid');
 
-                    $('.invalid-feedback').text("").hide(); 
-                    $('.is-invalid').removeClass('is-invalid');
-
-                    $.each(errors, function(key, value) {
-                        let input = $('[name="' + key + '"]');
-                        input.addClass('is-invalid'); 
-                        input.closest('.col-md-6, .col-md-12').find(
-                                '.invalid-feedback')
-                            .text(value[0]).show(); 
-                    });
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: xhr.responseJSON.message || "Terjadi kesalahan.",
-                    });
+                            let feedback = input.siblings(
+                                '.invalid-feedback');
+                            if (feedback.length === 0) {
+                                input.after(
+                                    '<div class="invalid-feedback">' +
+                                    value[0] + '</div>');
+                            } else {
+                                feedback.text(value[0]).show();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: xhr.responseJSON.message ||
+                                "Terjadi kesalahan.",
+                        });
+                    }
+                },
+                complete: function() {
+                    $('#createUserForm button[type="submit"]').prop('disabled',
+                        false);
                 }
-            },
-
-            complete: function() {
-                $('#createUserForm button[type="submit"]').prop('disabled', false);
-            }
+            });
         });
+
+        // ✅ Hapus error saat mulai mengetik
+        $(document).on('input', 'input, select, textarea', function() {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').hide();
+        });
+
+        // ✅ Toggle password tanpa merusak layout
+        $(document).on("click", ".toggle-password", function() {
+            let input = $($(this).attr("toggle"));
+            let icon = $(this).find("i");
+
+            input.attr("type", input.attr("type") === "password" ? "text" : "password");
+            icon.toggleClass("fa-eye fa-eye-slash");
+        });
+
+        // Setel ulang posisi ikon mata setelah errormmmmmmmm
+        $(".toggle-password").each(function() {
+            let input = $($(this).attr("toggle"));
+            $(this).insertAfter(input);
+        });
+
     });
 
 
-    $(".toggle-password").click(function() {
-        let input = $(this).prev("input");
-        let icon = $(this).find("i");
+    // AJAX Edit
+    $('.editUserBtn').on('click', function() {
+        let userId = $(this).data('id');
 
-        input.attr("type", input.attr("type") === "password" ? "text" : "password");
-        icon.toggleClass("fa-eye fa-eye-slash");
-    });
-
-    $('#createModal').on('hidden.bs.modal', function() {
-        $('#createUserForm').trigger("reset");
-        $('#createJurusan').val(''); 
         $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').text("").hide();
+        $('.invalid-feedback').remove();
+
+        $('#userId').val(userId);
+        $('#edit_username').val($(this).data('username') || '');
+        $('#edit_email').val($(this).data('email') || '');
+        $('#edit_no_hp').val($(this).data('no_hp') || '');
+        $('#edit_address').val($(this).data('address') || '');
+        $('#edit_jurusan').val($(this).data('jurusan') || '');
+
+        let status = $(this).data('status');
+        if (status !== undefined && status !== null) {
+            $('#edit_status').val(status.toString()).change();
+        }
+
+        $('#editUserForm').attr('action', `/admin/users/update/${userId}`);
+        $('#editModal').modal('show');
     });
-});
-
-//ajax edit
-$('.editUserBtn').on('click', function() {
-    let userId = $(this).data('id');
-
-    $('.is-invalid').removeClass('is-invalid');
-    $('.invalid-feedback').remove();
-
-
-    let username = $(this).data('username') || '';
-    let email = $(this).data('email') || '';
-    let no_hp = $(this).data('no_hp') || '';
-    let address = $(this).data('address') || '';
-    let jurusan = $(this).data('jurusan') || '';
-    let status = $(this).data('status');
-
-
-    $('#userId').val(userId);
-    $('#edit_username').val(username);
-    $('#edit_email').val(email);
-    $('#edit_no_hp').val(no_hp);
-    $('#edit_address').val(address);
-    $('#edit_jurusan').val(jurusan);
-
-
-    if (status !== undefined && status !== null) {
-        $('#edit_status').val(status.toString()).change();
-    }
-
-
-    $('#editUserForm').attr('action', `/admin/users/update/${userId}`);
-
-    $('#editModal').modal('show');
-});
 
     $('#editUserForm').on('submit', function(e) {
         e.preventDefault();
@@ -404,7 +418,6 @@ $('.editUserBtn').on('click', function() {
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
 
- 
         Swal.fire({
             title: 'Processing...',
             text: 'Updating user...',
@@ -431,7 +444,7 @@ $('.editUserBtn').on('click', function() {
                     toast: true,
                     position: "top-end",
                     showConfirmButton: false,
-                    timer: 1500,
+                    timer: 2500,
                     timerProgressBar: true
                 });
 
@@ -442,7 +455,7 @@ $('.editUserBtn').on('click', function() {
                 }, 1000);
             },
             error: function(xhr) {
-                Swal.close(); 
+                Swal.close();
                 submitButton.prop('disabled', false).html(
                     '<i class="fas fa-save"></i> Save changes');
 
@@ -472,11 +485,30 @@ $('.editUserBtn').on('click', function() {
         });
     });
 
-    $('#editModal').on('hidden.bs.modal', function() {
-        $('#editUserForm')[0].reset();
+    // Reset form dan error saat modal ditutup
+    $('#createModal, #editModal').on('hidden.bs.modal', function() {
+        $(this).find('form').trigger("reset");
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
     });
+
+    // ✅ Perbaikan: Hapus validasi error saat mulai mengetik
+    $(document).on('input', 'input, select, textarea', function() {
+        $(this).removeClass('is-invalid');
+        $(this).siblings('.invalid-feedback').hide();
+    });
+
+    $(".toggle-password").click(function() {
+        let input = $(this).prev("input");
+        let icon = $(this).find("i");
+
+        input.attr("type", input.attr("type") === "password" ? "text" : "password");
+        icon.toggleClass("fa-eye fa-eye-slash");
+    });
+});
+
+
+
 
 //delete
 function confirmDelete(userId, username) {
@@ -498,7 +530,7 @@ function confirmDelete(userId, username) {
                 allowEscapeKey: false,
                 showConfirmButton: false,
                 didOpen: () => {
-                    Swal.showLoading(); 
+                    Swal.showLoading();
                 }
             });
 

@@ -26,11 +26,11 @@
                         <hr class="dropdown-divider">
                     </li>
                     <li>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                        </form>
+                        <a href="#" id="logoutBtn" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
                     </li>
+
                 </ul>
             </li>
         </ul>
@@ -75,9 +75,9 @@
                         <th>Status</th>
                         <td>
                             @if(Auth::user()->status)
-                                <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">Active</span>
                             @else
-                                <span class="badge bg-danger">Inactive</span>
+                            <span class="badge bg-danger">Inactive</span>
                             @endif
                         </td>
                     </tr>
@@ -95,3 +95,75 @@
         </div>
     </div>
 </div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+    $("#logoutBtn").on("click", function(e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: "Yakin Logout?",
+            text: "Anda akan keluar dari akun ini.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Logout",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded shadow',
+                confirmButton: 'btn btn-sm btn-danger px-4 mx-2',
+                cancelButton: 'btn btn-sm btn-secondary px-4 mx-2'
+            },
+            buttonsStyling: false,
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/logout",
+                    type: "POST",
+                    dataType: "json",
+                    data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: "Logging out...",
+                            text: "Mohon tunggu sebentar...",
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading(),
+                            backdrop: "rgba(0,0,0,0.6)"
+                        });
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Logout Berhasil!",
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false,
+                            timerProgressBar: true,
+                            backdrop: "rgba(0,0,0,0.6)"
+                        }).then(() => {
+                            window.location.href = response.redirect;
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Logout Gagal!",
+                            text: "Terjadi kesalahan, coba lagi.",
+                            confirmButtonColor: "#dc3545"
+                        });
+                    }
+                });
+            }
+        });
+    });
+});
+</script>

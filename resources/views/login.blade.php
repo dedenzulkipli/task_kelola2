@@ -155,10 +155,9 @@
     });
     $(document).ready(function() {
         $("#loginForm").on("submit", function(e) {
-            e.preventDefault(); // Mencegah reload halaman
+            e.preventDefault();
 
-            // Reset error messages
-            $(".invalid-feedback").text("");
+            $(".invalid-feedback").fadeOut(200).text(""); // Reset error
             $(".form-control").removeClass("is-invalid");
 
             $.ajax({
@@ -172,60 +171,58 @@
                 beforeSend: function() {
                     Swal.fire({
                         title: "Logging in...",
-                        text: "Please wait...",
+                        text: "Mohon tunggu sebentar...",
                         allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
+                        didOpen: () => Swal.showLoading(),
+                        backdrop: "rgba(0,0,0,0.6)",
                     });
                 },
                 success: function(response) {
                     Swal.fire({
                         icon: "success",
                         title: "Login Berhasil!",
-                        text: "Selamat datang, " + response.username,
-                        timer: 2000,
-                        showConfirmButton: false
+                        text: `Selamat datang, ${response.username}!`,
+                        timer: 2500,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                        backdrop: "rgba(0,0,0,0.6)"
                     }).then(() => {
-                        window.location.href = response
-                        .redirect; // Redirect ke halaman dashboard
+                        window.location.href = response.redirect;
                     });
                 },
                 error: function(xhr) {
-                    Swal.close(); // Tutup loading
+                    Swal.close();
 
-                    if (xhr.status === 422) { // Validasi error
+                    if (xhr.status === 422) { // Validasi gagal
                         let errors = xhr.responseJSON.errors;
                         if (errors.email) {
                             $("#email").addClass("is-invalid");
-                            $("#emailError").text(errors.email[0]);
+                            $("#emailError").hide().text(errors.email[0]).fadeIn(300);
                         }
                         if (errors.password) {
                             $("#password").addClass("is-invalid");
-                            $("#passwordError").text(errors.password[0]);
+                            $("#passwordError").hide().text(errors.password[0]).fadeIn(300);
                         }
-                    } else { // Jika email/password salah
+                    } else if (xhr.status === 403) { // Akun belum aktif
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Akun Belum Aktif!",
+                            text: xhr.responseJSON.message,
+                            confirmButtonColor: "#007bff"
+                        });
+                    } else { // Error lain
                         Swal.fire({
                             icon: "error",
-                            title: "Login Gagal!",
-                            text: xhr.responseJSON.message ||
-                                "Cek kembali email & password Anda"
+                            title: "Terjadi Kesalahan!",
+                            text: "Silakan coba lagi nanti.",
+                            confirmButtonColor: "#dc3545"
                         });
                     }
                 }
             });
         });
     });
-    document.addEventListener("DOMContentLoaded", function() {
-    let logoutMessage = "{{ session('logout_success') }}";
-    if (logoutMessage) {
-        Swal.fire({
-            icon: "success",
-            title: "Logged Out",
-            text: logoutMessage,
-            timer: 2000,
-            showConfirmButton: false
-        });
-    }
-});
-</script>
+    </script>
 </body>
+
 </html>
